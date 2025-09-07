@@ -1,0 +1,25 @@
+[versions]
+log4j = "2.25.1"
+slf4j = "2.0.17"
+junit = "5.13.4"
+h2 = "2.3.232"
+druid = "1.2.22"
+mysql-connector = "9.4.0"
+
+[libraries]
+log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
+log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
+log4j-slf4j2-impl = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version.ref = "log4j" }
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+
+junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
+
+h2 = { group = "com.h2database", name = "h2", version.ref = "h2" }
+druid = { group = "com.alibaba", name = "druid", version.ref = "druid" }
+mysql-connector = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mysql-connector" }
+log4jdbc = { group = "com.googlecode.log4jdbc", name = "log4jdbc", version = "1.2" }
+
+[bundles]
+log4j = ["log4j-core", "log4j-api", "log4j-slf4j2-impl"]

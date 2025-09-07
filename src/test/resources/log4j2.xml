@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info">
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+    </Console>
+    <File name="File" fileName="logs/app.log">
+      <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+    </File>
+    <File name="SqlFile" fileName="logs/sql.log">
+      <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %msg%n"/>
+    </File>
+    <!--<RollingFile name="RollingFile" fileName="logs/app.log"-->
+    <!--  filePattern="logs/app-%d{yyyy-MM-dd}-%i.log.gz">-->
+    <!--  <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>-->
+    <!--  <Policies>-->
+    <!--    <TimeBasedTriggeringPolicy/>-->
+    <!--    <SizeBasedTriggeringPolicy size="10MB"/>-->
+    <!--  </Policies>-->
+    <!--  <DefaultRolloverStrategy max="10"/>-->
+    <!--</RollingFile>-->
+  </Appenders>
+  <Loggers>
+    <!-- SQL日志记录器 -->
+    <Logger name="sql.logger" level="debug" additivity="false">
+      <AppenderRef ref="SqlFile"/>
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- Log4jdbc日志记录器 -->
+    <Logger name="jdbc.sqlonly" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="SqlFile"/>
+    </Logger>
+
+    <Logger name="jdbc.sqltiming" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="SqlFile"/>
+    </Logger>
+
+    <Logger name="jdbc.audit" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+    </Logger>
+
+    <Logger name="jdbc.resultset" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+    </Logger>
+
+    <Logger name="jdbc.connection" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+    </Logger>
+
+    <!-- Druid日志记录器 -->
+    <Logger name="com.alibaba.druid" level="debug" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+    </Logger>
+
+    <!-- 应用程序主日志记录器 -->
+    <Logger name="com.reader.sjsql" level="debug" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+      <!--<AppenderRef ref="RollingFile"/>-->
+    </Logger>
+
+    <!-- 根日志记录器 -->
+    <Root level="info">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+      <!--<AppenderRef ref="RollingFile"/>-->
+    </Root>
+  </Loggers>
+</Configuration>
