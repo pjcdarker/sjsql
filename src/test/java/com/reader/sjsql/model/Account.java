@@ -2,24 +2,15 @@ package com.reader.sjsql.model;
 
 import java.time.LocalDateTime;
 
-public class Account {
-    private Long id;
+public class Account extends BaseEntity {
+
     private String name;
     private String email;
     private String code;
     private Boolean enabled;
-    private LocalDateTime createTime;
     private LocalDateTime updateTime;
     private Tenant tenant;
     private PaymentOrder paymentOrder;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -51,14 +42,6 @@ public class Account {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
-    }
-
-    public LocalDateTime getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(LocalDateTime createTime) {
-        this.createTime = createTime;
     }
 
     public LocalDateTime getUpdateTime() {

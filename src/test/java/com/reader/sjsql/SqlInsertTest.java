@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.reader.sjsql.SqlKeywords.Op;
+import com.reader.sjsql.model.Account;
+import com.reader.sjsql.result.ResultType;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -129,6 +132,46 @@ class SqlInsertTest extends DatabaseTest {
 
         assert_execute_update(insert, 3);
     }
+
+    @Test
+    void should_insert_entity_into_account_table() throws Throwable {
+        com.reader.sjsql.model.Account account = new com.reader.sjsql.model.Account();
+        account.setId(100L);
+        account.setName("Entity Test");
+        account.setEmail("entity@test.com");
+        account.setCode("ENTITY001");
+        account.setEnabled(true);
+        account.setCreateTime(LocalDateTime.of(2025, 9, 1, 10, 30, 0));
+
+        SqlInsert sqlInsert = SqlInsert.into("account", account);
+
+        assertEquals(6, sqlInsert.params().length);
+
+        assert_execute_update(sqlInsert);
+
+        SqlSelect sqlSelect = SqlSelect.from("account").where("code", Op.eq("ENTITY001"));
+        Account account1 = jdbcClient.queryForObject(sqlSelect, ResultType.of(Account.class));
+
+        assertEquals(account.getName(), account1.getName());
+        assertEquals(account.getEmail(), account1.getEmail());
+        assertEquals(account.getEnabled(), account1.getEnabled());
+    }
+
+    @Test
+    void should_insert_entity_with_partial_fields() {
+        Account account = new Account();
+        account.setName("Partial Entity Test");
+        account.setEmail("partial@test.com");
+        account.setEnabled(false);
+
+        SqlInsert sqlInsert = SqlInsert.into("account", account);
+
+        assertEquals("INSERT INTO account (name,email,enabled) VALUES (?,?,?);", sqlInsert.toSql());
+        assertArrayEquals(new Object[]{"Partial Entity Test", "partial@test.com", false}, sqlInsert.params());
+
+        assert_execute_update(sqlInsert);
+    }
+
 
     private void assert_execute_update(SqlInsert sqlInsert) {
         assert_execute_update(sqlInsert, 1);

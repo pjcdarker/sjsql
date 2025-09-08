@@ -1,5 +1,12 @@
 package com.reader.sjsql;
 
+import static com.reader.sjsql.result.ClassUtils.isSimpleType;
+import static com.reader.sjsql.result.ClassUtils.toSnakeCase;
+
+import com.reader.sjsql.result.ClassUtils;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -7,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 public class SqlInsert {
 
@@ -20,6 +28,39 @@ public class SqlInsert {
 
     public static SqlInsert into(String table) {
         return new SqlInsert(table);
+    }
+
+    public static <T> SqlInsert into(String table, T entity) {
+        SqlInsert sqlInsert = new SqlInsert(table);
+        Objects.requireNonNull(entity, "Entity cannot be null");
+        List<Field> fields = ClassUtils.getDeclaredFields(entity.getClass());
+        try {
+            for (Field field : fields) {
+                sqlInsert.setColumnValue(entity, field);
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+
+        return sqlInsert;
+    }
+
+    private void setColumnValue(Object entity, Field field) throws Throwable {
+        // skip [transient, static] modifier field or association field object
+        if (Modifier.isTransient(field.getModifiers())
+            || Modifier.isStatic(field.getModifiers())
+            || !isSimpleType(field.getType())) {
+            return;
+        }
+
+        Object fieldValue = ClassUtils.getFieldValue(entity, field);
+        // ignore null value
+        if (fieldValue == null) {
+            return;
+        }
+
+        String columnName = toSnakeCase(field.getName());
+        this.value(columnName, fieldValue);
     }
 
     public SqlInsert value(String column, Object value) {

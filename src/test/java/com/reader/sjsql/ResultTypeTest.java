@@ -167,7 +167,7 @@ class ResultTypeTest extends DatabaseTest {
 
         accounts.forEach(System.err::println);
         assertEquals(4, accounts.size());
-        assertEquals(1L, (Long) accounts.getFirst().get("id"));
+        assertEquals(1L, Long.parseLong(accounts.getFirst().get("id").toString()));
         assertEquals("Alice", accounts.getFirst().get("name"));
     }
 

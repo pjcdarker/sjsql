@@ -101,4 +101,17 @@ public class SimpleJdbcClient {
     public Connection getConnection() {
         return connection;
     }
+
+    public <T> T queryForObject(SqlSelect sqlSelect, ResultType<T> resultType) throws Throwable {
+        try (PreparedStatement ps = connection.prepareStatement(sqlSelect.toSql())) {
+            final Object[] params = sqlSelect.params();
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return resultType.mapping(rs);
+            }
+        }
+    }
 }
