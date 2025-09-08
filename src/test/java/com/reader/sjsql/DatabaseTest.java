@@ -1,6 +1,8 @@
 package com.reader.sjsql;
 
-import com.reader.sjsql.helper.H2TestDataSource;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.reader.sjsql.helper.Mysql8TestDataSource;
 import com.reader.sjsql.helper.SimpleJdbcClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -8,6 +10,8 @@ import org.junit.jupiter.api.BeforeAll;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+import java.util.Map;
 
 class DatabaseTest {
 
@@ -20,8 +24,8 @@ class DatabaseTest {
     @BeforeAll
     static void beforeAll() throws SQLException {
         // H2
-        Connection connection = H2TestDataSource.getConnection();
-        // Connection connection = Mysql8TestDataSource.getConnection();
+        // Connection connection = H2TestDataSource.getConnection();
+        Connection connection = Mysql8TestDataSource.getConnection();
         jdbcClient = new SimpleJdbcClient(connection);
 
         try (Statement stmt = connection.createStatement()) {
@@ -88,7 +92,28 @@ class DatabaseTest {
         try (Statement stmt = jdbcClient.getConnection().createStatement()) {
             stmt.execute("DELETE FROM " + T_PAYMENT_ORDER + " where trade_no like '%TRADE%'");
             stmt.execute("DELETE FROM " + T_TENANT + " where name like '%test%'");
-            stmt.execute("DELETE FROM " + T_ACCOUNT + " where email like '%test%'");
+            stmt.execute("DELETE FROM " + T_ACCOUNT + " where name like '%test%' OR email like '%test%'");
+        }
+    }
+
+    protected void assert_execute_sql(String sql, Object... params) {
+        boolean result = true;
+        try {
+            execute_sql(sql, params);
+        } catch (Exception e) {
+            result = false;
+        }
+
+        assertTrue(result);
+    }
+
+    protected void execute_sql(String sql, Object... params) throws SQLException {
+        try {
+            final List<Map<String, Object>> resultMap = jdbcClient.execute(sql, params);
+            System.err.println("resultMap: " + resultMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new SQLException(e);
         }
     }
 }

@@ -3,19 +3,17 @@ package com.reader.sjsql;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.reader.sjsql.SqlKeywords.Op;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 class SqlSelectTest extends DatabaseTest {
 
@@ -83,13 +81,13 @@ class SqlSelectTest extends DatabaseTest {
         String[] columns = {"a.id", "a.name", "b.name"};
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT, "a")
                                        .select(columns)
-                                       .join(T_TENANT, "b", "a.id", "b.accountId");
+                                       .join(T_TENANT, "b", "a.id", "b.account_id");
 
         final String expected = SqlKeywords.SELECT
             + String.join(",", columns)
             + SqlKeywords.FROM + T_ACCOUNT + " a"
             + SqlKeywords.JOIN + T_TENANT + " b"
-            + SqlKeywords.ON + "a.id=b.accountId";
+            + SqlKeywords.ON + "a.id=b.account_id";
 
         assertEquals(expected, sqlSelect.toSql());
 
@@ -101,19 +99,19 @@ class SqlSelectTest extends DatabaseTest {
         String[] columns = {"a.id", "a.name", "b.name"};
 
         SqlSelect subTable = SqlSelect.from(T_TENANT)
-                                      .select("id,name,accountId");
+                                      .select("id,name,account_id");
 
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT, "a")
                                        .select(columns)
-                                       .join(subTable, "b", "a.id", "b.accountId");
+                                       .join(subTable, "b", "a.id", "b.account_id");
 
-        String sub = SqlKeywords.SELECT + "id,name,accountId" + SqlKeywords.FROM + T_TENANT;
+        String sub = SqlKeywords.SELECT + "id,name,account_id" + SqlKeywords.FROM + T_TENANT;
 
         final String expected = SqlKeywords.SELECT
             + String.join(",", columns)
             + SqlKeywords.FROM + T_ACCOUNT + " a"
             + SqlKeywords.JOIN + "(" + sub + ") b"
-            + SqlKeywords.ON + "a.id=b.accountId";
+            + SqlKeywords.ON + "a.id=b.account_id";
 
         assertEquals(expected, sqlSelect.toSql());
 
@@ -125,7 +123,7 @@ class SqlSelectTest extends DatabaseTest {
         String[] columns = {"a.id", "a.name", "b.name"};
         SqlSelect subTable = SqlSelect
             .from(T_TENANT)
-            .select("id,name,accountId")
+            .select("id,name,account_id")
             .where
             .and("id", Op.gt(10))
             .end();
@@ -133,10 +131,10 @@ class SqlSelectTest extends DatabaseTest {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT, "a")
             .select(columns)
-            .join(subTable, "b", "a.id", "b.accountId")
+            .join(subTable, "b", "a.id", "b.account_id")
             .where("a.code", Op.eq(1));
 
-        String sub = SqlKeywords.SELECT + "id,name,accountId"
+        String sub = SqlKeywords.SELECT + "id,name,account_id"
             + SqlKeywords.FROM + T_TENANT
             + SqlKeywords.WHERE + "id>?";
 
@@ -144,7 +142,7 @@ class SqlSelectTest extends DatabaseTest {
             + String.join(",", columns)
             + SqlKeywords.FROM + T_ACCOUNT + " a"
             + SqlKeywords.JOIN + "(" + sub + ") b"
-            + SqlKeywords.ON + "a.id=b.accountId"
+            + SqlKeywords.ON + "a.id=b.account_id"
             + SqlKeywords.WHERE + "a.code=?";
 
         assertEquals(expected, sqlSelect.toSql());
@@ -161,26 +159,26 @@ class SqlSelectTest extends DatabaseTest {
 
         SqlSelect subTable2 = SqlSelect
             .from(T_TENANT)
-            .select("id,name,accountId")
+            .select("id,name,account_id")
             .where
             .and("id", Op.gt(10))
             .end();
 
         final SqlSelect sqlSelect = SqlSelect
             .from(subTable, "a")
-            .join(subTable2, "b", "a.id", "b.accountId")
+            .join(subTable2, "b", "a.id", "b.account_id")
             .select(columns);
 
         String sub1 = SqlKeywords.SELECT + "*" + SqlKeywords.FROM + T_ACCOUNT
             + SqlKeywords.WHERE + "code=?";
 
-        String sub2 = SqlKeywords.SELECT + "id,name,accountId" + SqlKeywords.FROM + T_TENANT
+        String sub2 = SqlKeywords.SELECT + "id,name,account_id" + SqlKeywords.FROM + T_TENANT
             + SqlKeywords.WHERE + "id>?";
 
         final String expected = SqlKeywords.SELECT + String.join(",", columns)
             + SqlKeywords.FROM + "(" + sub1 + ") a"
             + SqlKeywords.JOIN + "(" + sub2 + ") b"
-            + SqlKeywords.ON + "a.id=b.accountId";
+            + SqlKeywords.ON + "a.id=b.account_id";
         assertEquals(expected, sqlSelect.toSql());
 
         assert_run_sql(sqlSelect);
@@ -192,13 +190,13 @@ class SqlSelectTest extends DatabaseTest {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT, "a")
             .select(columns)
-            .leftJoin(T_TENANT, "b", "a.id", "b.accountId");
+            .leftJoin(T_TENANT, "b", "a.id", "b.account_id");
 
         final String expected = SqlKeywords.SELECT
             + String.join(",", columns)
             + SqlKeywords.FROM + T_ACCOUNT + " a"
             + SqlKeywords.LEFT_JOIN + T_TENANT + " b"
-            + SqlKeywords.ON + "a.id=b.accountId";
+            + SqlKeywords.ON + "a.id=b.account_id";
 
         assertEquals(expected, sqlSelect.toSql());
 
@@ -211,23 +209,23 @@ class SqlSelectTest extends DatabaseTest {
 
         SqlSelect subTable = SqlSelect
             .from(T_TENANT)
-            .select("id,name,accountId")
+            .select("id,name,account_id")
             .where
             .and("id", Op.gt(10))
             .end();
 
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT, "a")
                                        .select(columns)
-                                       .leftJoin(subTable, "b", "a.id", "b.accountId")
+                                       .leftJoin(subTable, "b", "a.id", "b.account_id")
                                        .where("a.code", Op.eq(1));
 
-        String sub = SqlKeywords.SELECT + "id,name,accountId" + SqlKeywords.FROM + T_TENANT
+        String sub = SqlKeywords.SELECT + "id,name,account_id" + SqlKeywords.FROM + T_TENANT
             + SqlKeywords.WHERE + "id>?";
 
         final String expected = SqlKeywords.SELECT + String.join(",", columns)
             + SqlKeywords.FROM + T_ACCOUNT + " a"
             + SqlKeywords.LEFT_JOIN + "(" + sub + ") b"
-            + SqlKeywords.ON + "a.id=b.accountId"
+            + SqlKeywords.ON + "a.id=b.account_id"
             + SqlKeywords.WHERE + "a.code=?";
         assertEquals(expected, sqlSelect.toSql());
 
@@ -239,12 +237,12 @@ class SqlSelectTest extends DatabaseTest {
         String[] columns = {"a.id", "a.name", "b.name"};
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT, "a")
                                        .select(columns)
-                                       .rightJoin(T_TENANT, "b", "a.id", "b.accountId");
+                                       .rightJoin(T_TENANT, "b", "a.id", "b.account_id");
 
         final String expected = SqlKeywords.SELECT + String.join(",", columns)
             + SqlKeywords.FROM + T_ACCOUNT + " a"
             + SqlKeywords.RIGHT_JOIN + T_TENANT + " b"
-            + SqlKeywords.ON + "a.id=b.accountId";
+            + SqlKeywords.ON + "a.id=b.account_id";
 
         assertEquals(expected, sqlSelect.toSql());
 
@@ -257,23 +255,23 @@ class SqlSelectTest extends DatabaseTest {
 
         SqlSelect subTable = SqlSelect
             .from(T_TENANT)
-            .select("id,name,accountId")
+            .select("id,name,account_id")
             .where
             .and("id", Op.gt(10))
             .end();
 
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT, "a")
                                        .select(columns)
-                                       .rightJoin(subTable, "b", "a.id", "b.accountId")
+                                       .rightJoin(subTable, "b", "a.id", "b.account_id")
                                        .where("a.code", Op.eq(1));
 
-        String sub = SqlKeywords.SELECT + "id,name,accountId" + SqlKeywords.FROM + T_TENANT
+        String sub = SqlKeywords.SELECT + "id,name,account_id" + SqlKeywords.FROM + T_TENANT
             + SqlKeywords.WHERE + "id>?";
 
         final String expected = SqlKeywords.SELECT + String.join(",", columns)
             + SqlKeywords.FROM + T_ACCOUNT + " a"
             + SqlKeywords.RIGHT_JOIN + "(" + sub + ") b"
-            + SqlKeywords.ON + "a.id=b.accountId"
+            + SqlKeywords.ON + "a.id=b.account_id"
             + SqlKeywords.WHERE + "a.code=?";
         assertEquals(expected, sqlSelect.toSql());
 
@@ -981,13 +979,13 @@ class SqlSelectTest extends DatabaseTest {
             + SqlKeywords.WHERE + "enabled=?", sqlSelect.totalRowSql());
 
         assert_run_sql(sqlSelect);
-        assert_run_sql(sqlSelect.totalRowSql(), sqlSelect.params());
+        assert_execute_sql(sqlSelect.totalRowSql(), sqlSelect.params());
     }
 
     @Test
     void should_output_total_row_sql_with_join_table() {
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT, "a")
-                                       .join(T_TENANT, "b", "a.id", "b.accountId")
+                                       .join(T_TENANT, "b", "a.id", "b.account_id")
                                        .select("a.id,a.name", "b.name")
                                        .where("a.enabled", Op.eq(1))
                                        .orderBy("a.id", false)
@@ -996,7 +994,7 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "a.id,a.name,b.name"
                 + SqlKeywords.FROM + T_ACCOUNT + " a"
                 + SqlKeywords.JOIN + T_TENANT + " b"
-                + SqlKeywords.ON + "a.id=b.accountId"
+                + SqlKeywords.ON + "a.id=b.account_id"
                 + SqlKeywords.WHERE + "a.enabled=?"
                 + SqlKeywords.ORDER_BY + "a.id" + " DESC "
                 + SqlKeywords.LIMIT + "0, 10",
@@ -1005,54 +1003,54 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "count(*)"
                 + SqlKeywords.FROM + T_ACCOUNT + " a"
                 + SqlKeywords.JOIN + T_TENANT + " b"
-                + SqlKeywords.ON + "a.id=b.accountId"
+                + SqlKeywords.ON + "a.id=b.account_id"
                 + SqlKeywords.WHERE + "a.enabled=?",
             sqlSelect.totalRowSql());
 
         assert_run_sql(sqlSelect);
-        assert_run_sql(sqlSelect.totalRowSql(), sqlSelect.params());
+        assert_execute_sql(sqlSelect.totalRowSql(), sqlSelect.params());
     }
 
     @Test
     void should_output_total_row_sql_with_group_by_and_having() {
         SqlSelect sqlSelect = SqlSelect
             .from(T_TENANT)
-            .select("accountId,count(*) cnt")
+            .select("account_id,count(*) cnt")
             .where("enabled", Op.eq(1))
-            .groupBy("accountId")
+            .groupBy("account_id")
             .having
-            .and("accountId", Op.gt(100))
+            .and("account_id", Op.gt(100))
             .end()
-            .orderBy("accountId", false)
+            .orderBy("account_id", false)
             .limit(0, 10);
 
-        assertEquals(SqlKeywords.SELECT + "accountId,count(*) cnt"
+        assertEquals(SqlKeywords.SELECT + "account_id,count(*) cnt"
                 + SqlKeywords.FROM + T_TENANT
                 + SqlKeywords.WHERE + "enabled=?"
-                + SqlKeywords.GROUP_BY + "accountId"
-                + SqlKeywords.HAVING + "accountId>?"
-                + SqlKeywords.ORDER_BY + "accountId" + " DESC "
+                + SqlKeywords.GROUP_BY + "account_id"
+                + SqlKeywords.HAVING + "account_id>?"
+                + SqlKeywords.ORDER_BY + "account_id" + " DESC "
                 + SqlKeywords.LIMIT + "0, 10",
             sqlSelect.toSql());
 
         assertEquals(SqlKeywords.SELECT + "count(*)"
                 + SqlKeywords.FROM
-                + "(" + SqlKeywords.SELECT + "accountId,count(*) cnt"
+                + "(" + SqlKeywords.SELECT + "account_id,count(*) cnt"
                 + SqlKeywords.FROM + T_TENANT
                 + SqlKeywords.WHERE + "enabled=?"
-                + SqlKeywords.GROUP_BY + "accountId"
-                + SqlKeywords.HAVING + "accountId>?) t0",
+                + SqlKeywords.GROUP_BY + "account_id"
+                + SqlKeywords.HAVING + "account_id>?) t0",
             sqlSelect.totalRowSql());
 
         assert_run_sql(sqlSelect);
-        assert_run_sql(sqlSelect.totalRowSql(), sqlSelect.params());
+        assert_execute_sql(sqlSelect.totalRowSql(), sqlSelect.params());
     }
 
     @Test
     void should_output_total_row_sql_with_join_table_group_by_and_having() {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT, "a")
-            .join(T_TENANT, "b", "a.id", "b.accountId")
+            .join(T_TENANT, "b", "a.id", "b.account_id")
             .select("a.id", "count(*) cnt")
             .where("a.enabled", Op.eq(1))
             .groupBy("a.id")
@@ -1065,7 +1063,7 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "a.id,count(*) cnt"
                 + SqlKeywords.FROM + T_ACCOUNT + " a"
                 + SqlKeywords.JOIN + T_TENANT + " b"
-                + SqlKeywords.ON + "a.id=b.accountId"
+                + SqlKeywords.ON + "a.id=b.account_id"
                 + SqlKeywords.WHERE + "a.enabled=?"
                 + SqlKeywords.GROUP_BY + "a.id"
                 + SqlKeywords.HAVING + "a.id>?"
@@ -1078,14 +1076,14 @@ class SqlSelectTest extends DatabaseTest {
                 + "(" + SqlKeywords.SELECT + "a.id,count(*) cnt"
                 + SqlKeywords.FROM + T_ACCOUNT + " a"
                 + SqlKeywords.JOIN + T_TENANT + " b"
-                + SqlKeywords.ON + "a.id=b.accountId"
+                + SqlKeywords.ON + "a.id=b.account_id"
                 + SqlKeywords.WHERE + "a.enabled=?"
                 + SqlKeywords.GROUP_BY + "a.id"
                 + SqlKeywords.HAVING + "a.id>?) t0",
             sqlSelect.totalRowSql());
 
         assert_run_sql(sqlSelect);
-        assert_run_sql(sqlSelect.totalRowSql(), sqlSelect.params());
+        assert_execute_sql(sqlSelect.totalRowSql(), sqlSelect.params());
     }
 
     @Test
@@ -1236,7 +1234,7 @@ class SqlSelectTest extends DatabaseTest {
                 + SqlKeywords.LIMIT + " 1 ",
             summarySql);
 
-        assert_run_sql(summarySql, sqlSelect.params());
+        assert_execute_sql(summarySql, sqlSelect.params());
     }
 
     @Test
@@ -1267,41 +1265,26 @@ class SqlSelectTest extends DatabaseTest {
                 + SqlKeywords.LIMIT + " 1 ",
             summarySql);
 
-        assert_run_sql(summarySql, sqlSelect.params());
+        assert_execute_sql(summarySql, sqlSelect.params());
     }
 
     @Test
-    @Disabled
-    void should_throw_exception_when_summary_sql_with_having_and_no_group_by() {
+    void should_throw_exception_when_in_aggregated_query_without_group_by() {
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT)
                                        .select("name")
                                        .addSummaryColumn("count(1)", "cnt")
                                        .where("enabled", Op.eq(1))
-                                       .groupBy("name")
+                                       // .groupBy("name")
                                        .having("cnt", Op.eq(1))
                                        .limit(0, 10);
 
-        final List<String> summaryColumns = Arrays.asList("sum(cnt) cnt");
+        final List<String> summaryColumns = List.of("sum(cnt) cnt");
         assertThrows(IllegalArgumentException.class, () -> sqlSelect.summarySql(summaryColumns));
-
-        assert_run_sql(sqlSelect);
+        assertThrows(SQLException.class, () -> execute_sql(sqlSelect.toSql(), sqlSelect.params()));
     }
 
 
     private void assert_run_sql(SqlSelect sqlSelect) {
-        assert_run_sql(sqlSelect.toSql(), sqlSelect.params());
-    }
-
-    private void assert_run_sql(String sql, Object... params) {
-        boolean result = true;
-        try {
-            final List<Map<String, Object>> resultMap = jdbcClient.execute(sql, params);
-            System.err.println("resultMap: " + resultMap);
-        } catch (Exception e) {
-            e.printStackTrace();
-            result = false;
-        }
-
-        assertTrue(result);
+        assert_execute_sql(sqlSelect.toSql(), sqlSelect.params());
     }
 }

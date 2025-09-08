@@ -297,7 +297,7 @@ public class SqlSelect {
 
         if (this.groupByBuilder.isEmpty()) {
             throw new IllegalArgumentException(
-                "not found group by statement, The having statement has to use with group by statement");
+                "In aggregated query without GROUP BY, The having statement has to use with group by statement");
         }
 
         final String sql = selectFromTableSql(this.table, String.join(",", this.summaryColumns))
