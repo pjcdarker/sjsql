@@ -33,6 +33,8 @@ public enum SqlKeywords {
     AS(" AS "),
     INSERT_INTO("INSERT INTO "),
     VALUES(" VALUES "),
+    UPDATE("UPDATE "),
+    SET(" SET "),
 
     ;
 

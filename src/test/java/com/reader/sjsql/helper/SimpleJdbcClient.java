@@ -102,7 +102,7 @@ public class SimpleJdbcClient {
         return connection;
     }
 
-    public <T> T queryForObject(SqlSelect sqlSelect, ResultType<T> resultType) throws Throwable {
+    public <T> T queryForObject(SqlSelect sqlSelect, ResultType<T> resultType) {
         try (PreparedStatement ps = connection.prepareStatement(sqlSelect.toSql())) {
             final Object[] params = sqlSelect.params();
             for (int i = 0; i < params.length; i++) {
@@ -112,6 +112,8 @@ public class SimpleJdbcClient {
             try (ResultSet rs = ps.executeQuery()) {
                 return resultType.mapping(rs);
             }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -3,6 +3,7 @@ package com.reader.sjsql.result;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -10,9 +11,18 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class ClassUtils {
+
+    private static final Map<Class<?>, List<Field>> persistent_field_cache = new ConcurrentHashMap<>(32);
+    private static final Map<Class<?>, List<Field>> declared_field_cache = new ConcurrentHashMap<>(32);
+
+    private ClassUtils() {
+    }
 
     static void setFieldValue(Object instance, Field field, Object value)
         throws NoSuchFieldException, IllegalAccessException {
@@ -33,38 +43,37 @@ public final class ClassUtils {
     }
 
     public static List<Field> getDeclaredFields(Class<?> clazz) {
-        List<Field> fields = new ArrayList<>();
-        while (clazz != null && clazz != Object.class) {
-            fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
-            clazz = clazz.getSuperclass();
-        }
-        return fields;
+        return declared_field_cache.computeIfAbsent(clazz, key -> {
+            List<Field> fields = new ArrayList<>();
+            Class<?> tClazz = clazz;
+            while (tClazz != null && tClazz != Object.class) {
+                fields.addAll(Arrays.asList(tClazz.getDeclaredFields()));
+                tClazz = tClazz.getSuperclass();
+            }
+            return fields;
+        });
     }
 
     static Field getFieldByName(Class<?> clazz, String fieldName) throws Exception {
-        String camelCaseName = toCamelCase(fieldName);
+        String newFieldName = toCamelCase(fieldName);
         try {
-            return clazz.getDeclaredField(camelCaseName);
+            return clazz.getDeclaredField(newFieldName);
         } catch (NoSuchFieldException e) {
             // ignore
         }
 
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
-            if (field.getName().equalsIgnoreCase(camelCaseName)) {
+            if (field.getName().equalsIgnoreCase(newFieldName)) {
                 return field;
             }
         }
 
-        Class<?> superClass = clazz.getSuperclass();
-        while (superClass != null && superClass != Object.class) {
-            try {
-                return getFieldByName(superClass, camelCaseName);
-            } catch (NoSuchFieldException ex) {
-                superClass = superClass.getSuperclass();
-            }
-        }
-        return null;
+        return getDeclaredFields(clazz.getSuperclass())
+            .stream()
+            .filter(field -> field.getName().equalsIgnoreCase(newFieldName))
+            .findFirst()
+            .orElse(null);
     }
 
     static String toCamelCase(String fieldName) {
@@ -102,6 +111,40 @@ public final class ClassUtils {
         return snakeCase.toString();
     }
 
+    public static List<Field> getPersistentFields(Class<?> clazz) {
+        return persistent_field_cache.computeIfAbsent(clazz, key -> {
+            final List<Field> fields = getDeclaredFields(clazz);
+            return fields.stream()
+                         .filter(ClassUtils::isPersistentField)
+                         .toList();
+        });
+    }
+
+    /**
+     * skip [transient, static] modifier field or association field object.
+     */
+    public static boolean isPersistentField(Field field) {
+        if (Modifier.isTransient(field.getModifiers())
+            || Modifier.isStatic(field.getModifiers())
+            || !isSimpleType(field.getType())) {
+            return false;
+        }
+        return true;
+    }
+
+    public static <T> Map<String, Object> persistentFieldValues(T instance) {
+        Map<String, Object> fieldValues = new LinkedHashMap<>();
+        final List<Field> fieldList = getPersistentFields(instance.getClass());
+        fieldList.forEach(field -> {
+            try {
+                fieldValues.put(field.getName(), ClassUtils.getFieldValue(instance, field));
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        return fieldValues;
+    }
 
     public static boolean isSimpleType(Class<?> clazz) {
         return clazz.isPrimitive()

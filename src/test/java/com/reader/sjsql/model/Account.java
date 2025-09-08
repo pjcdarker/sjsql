@@ -9,6 +9,7 @@ public class Account extends BaseEntity {
     private String code;
     private Boolean enabled;
     private LocalDateTime updateTime;
+    private transient LocalDateTime testTime;
     private Tenant tenant;
     private PaymentOrder paymentOrder;
 
@@ -52,6 +53,15 @@ public class Account extends BaseEntity {
         this.updateTime = updateTime;
     }
 
+
+    public LocalDateTime getTestTime() {
+        return testTime;
+    }
+
+    public void setTestTime(LocalDateTime testTime) {
+        this.testTime = testTime;
+    }
+
     public Tenant getTenant() {
         return tenant;
     }
@@ -81,5 +91,11 @@ public class Account extends BaseEntity {
             ", tenant=" + tenant +
             ", paymentOrder=" + paymentOrder +
             '}';
+    }
+
+    public void setTestInfo(String email) {
+        this.name = "Entity Update Test";
+        this.email = email ;
+        this.code = "ENTITY002";
     }
 }
