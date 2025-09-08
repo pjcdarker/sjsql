@@ -31,7 +31,7 @@ class DatabaseTest {
         try (Statement stmt = connection.createStatement()) {
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS account (
-                                id INT PRIMARY KEY,
+                                id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
                                 name VARCHAR(50), 
                                 email VARCHAR(100), 
                                 code VARCHAR(100), 
@@ -41,7 +41,7 @@ class DatabaseTest {
                 """);
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS tenant (
-                                id INT PRIMARY KEY,
+                                id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
                                 account_id INT, 
                                 name VARCHAR(100),
                                 enabled tinyint(1),
@@ -51,7 +51,7 @@ class DatabaseTest {
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS payment_order (
-                    id BIGINT PRIMARY KEY,
+                    id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
                     account_id BIGINT,
                     tenant_id BIGINT,
                     trade_no VARCHAR(100),
@@ -96,10 +96,10 @@ class DatabaseTest {
         }
     }
 
-    protected void assert_execute_sql(String sql, Object... params) {
+    protected void assert_execute_query(String sql, Object... params) {
         boolean result = true;
         try {
-            execute_sql(sql, params);
+            execute_query(sql, params);
         } catch (Exception e) {
             result = false;
         }
@@ -107,13 +107,24 @@ class DatabaseTest {
         assertTrue(result);
     }
 
-    protected void execute_sql(String sql, Object... params) throws SQLException {
+    protected void execute_query(String sql, Object... params) throws SQLException {
         try {
             final List<Map<String, Object>> resultMap = jdbcClient.execute(sql, params);
             System.err.println("resultMap: " + resultMap);
         } catch (Exception e) {
             e.printStackTrace();
             throw new SQLException(e);
+        }
+    }
+
+    protected int execute_update(String sql, Object... params) {
+        try {
+            int result = jdbcClient.executeUpdate(sql, params);
+            System.err.println("result: " + result);
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

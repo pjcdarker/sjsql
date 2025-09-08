@@ -31,6 +31,8 @@ public enum SqlKeywords {
     ORDER_BY("\n ORDER BY "),
     BETWEEN("BETWEEN"),
     AS(" AS "),
+    INSERT_INTO("INSERT INTO "),
+    VALUES(" VALUES "),
 
     ;
 

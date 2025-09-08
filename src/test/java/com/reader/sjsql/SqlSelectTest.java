@@ -979,7 +979,7 @@ class SqlSelectTest extends DatabaseTest {
             + SqlKeywords.WHERE + "enabled=?", sqlSelect.totalRowSql());
 
         assert_run_sql(sqlSelect);
-        assert_execute_sql(sqlSelect.totalRowSql(), sqlSelect.params());
+        assert_execute_query(sqlSelect.totalRowSql(), sqlSelect.params());
     }
 
     @Test
@@ -1008,7 +1008,7 @@ class SqlSelectTest extends DatabaseTest {
             sqlSelect.totalRowSql());
 
         assert_run_sql(sqlSelect);
-        assert_execute_sql(sqlSelect.totalRowSql(), sqlSelect.params());
+        assert_execute_query(sqlSelect.totalRowSql(), sqlSelect.params());
     }
 
     @Test
@@ -1043,7 +1043,7 @@ class SqlSelectTest extends DatabaseTest {
             sqlSelect.totalRowSql());
 
         assert_run_sql(sqlSelect);
-        assert_execute_sql(sqlSelect.totalRowSql(), sqlSelect.params());
+        assert_execute_query(sqlSelect.totalRowSql(), sqlSelect.params());
     }
 
     @Test
@@ -1083,7 +1083,7 @@ class SqlSelectTest extends DatabaseTest {
             sqlSelect.totalRowSql());
 
         assert_run_sql(sqlSelect);
-        assert_execute_sql(sqlSelect.totalRowSql(), sqlSelect.params());
+        assert_execute_query(sqlSelect.totalRowSql(), sqlSelect.params());
     }
 
     @Test
@@ -1234,7 +1234,7 @@ class SqlSelectTest extends DatabaseTest {
                 + SqlKeywords.LIMIT + " 1 ",
             summarySql);
 
-        assert_execute_sql(summarySql, sqlSelect.params());
+        assert_execute_query(summarySql, sqlSelect.params());
     }
 
     @Test
@@ -1265,7 +1265,7 @@ class SqlSelectTest extends DatabaseTest {
                 + SqlKeywords.LIMIT + " 1 ",
             summarySql);
 
-        assert_execute_sql(summarySql, sqlSelect.params());
+        assert_execute_query(summarySql, sqlSelect.params());
     }
 
     @Test
@@ -1280,11 +1280,11 @@ class SqlSelectTest extends DatabaseTest {
 
         final List<String> summaryColumns = List.of("sum(cnt) cnt");
         assertThrows(IllegalArgumentException.class, () -> sqlSelect.summarySql(summaryColumns));
-        assertThrows(SQLException.class, () -> execute_sql(sqlSelect.toSql(), sqlSelect.params()));
+        assertThrows(SQLException.class, () -> execute_query(sqlSelect.toSql(), sqlSelect.params()));
     }
 
 
     private void assert_run_sql(SqlSelect sqlSelect) {
-        assert_execute_sql(sqlSelect.toSql(), sqlSelect.params());
+        assert_execute_query(sqlSelect.toSql(), sqlSelect.params());
     }
 }

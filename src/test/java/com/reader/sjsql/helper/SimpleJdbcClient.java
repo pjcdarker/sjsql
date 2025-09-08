@@ -63,10 +63,10 @@ public class SimpleJdbcClient {
     }
 
     /**
-     * （INSERT、UPDATE、DELETE等）
+     * （INSERT、UPDATE、DELETE）
      *
      */
-    private int executeUpdate(String sql, Object[] params) throws SQLException {
+    public int executeUpdate(String sql, Object[] params) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             for (int i = 0; i < params.length; i++) {
                 ps.setObject(i + 1, params[i]);
