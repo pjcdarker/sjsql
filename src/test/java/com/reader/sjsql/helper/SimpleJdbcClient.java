@@ -1,6 +1,7 @@
 package com.reader.sjsql.helper;
 
 import com.reader.sjsql.SqlSelect;
+import com.reader.sjsql.SqlUpdate;
 import com.reader.sjsql.result.ResultType;
 
 import java.sql.Connection;
@@ -73,6 +74,22 @@ public class SimpleJdbcClient {
             }
 
             return ps.executeUpdate();
+        }
+    }
+
+    public int[] executeBatchUpdate(SqlUpdate sqlUpdate) throws SQLException {
+        return executeBatchUpdate(sqlUpdate.toSql(), sqlUpdate.batchParams());
+    }
+
+    public int[] executeBatchUpdate(String sql, Object[][] batchParams) throws SQLException {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            for (Object[] params : batchParams) {
+                for (int i = 0; i < params.length; i++) {
+                    ps.setObject(i + 1, params[i]);
+                }
+                ps.addBatch();
+            }
+            return ps.executeBatch();
         }
     }
 

@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class ClassUtils {
 
     private static final Map<Class<?>, List<Field>> persistent_field_cache = new ConcurrentHashMap<>(32);
+    private static final Map<Class<?>, List<Field>> all_declared_field_cache = new ConcurrentHashMap<>(32);
     private static final Map<Class<?>, List<Field>> declared_field_cache = new ConcurrentHashMap<>(32);
 
     private ClassUtils() {
@@ -42,8 +43,23 @@ public final class ClassUtils {
         return getter.invoke(instance);
     }
 
+    public static Object getFieldValue(Object instance, String fieldName)
+        throws Throwable {
+        final Field field = getFieldByName(instance.getClass(), fieldName);
+        if (field == null) {
+            return null;
+        }
+        final MethodHandle getter = MethodHandles
+            .privateLookupIn(field.getDeclaringClass(), MethodHandles.lookup())
+            .findGetter(field.getDeclaringClass(), field.getName(), field.getType());
+        if (getter == null) {
+            return null;
+        }
+        return getter.invoke(instance);
+    }
+
     public static List<Field> getDeclaredFields(Class<?> clazz) {
-        return declared_field_cache.computeIfAbsent(clazz, key -> {
+        return all_declared_field_cache.computeIfAbsent(clazz, key -> {
             List<Field> fields = new ArrayList<>();
             Class<?> tClazz = clazz;
             while (tClazz != null && tClazz != Object.class) {
@@ -62,7 +78,7 @@ public final class ClassUtils {
             // ignore
         }
 
-        Field[] fields = clazz.getDeclaredFields();
+        List<Field> fields = declared_field_cache.computeIfAbsent(clazz, key -> List.of(clazz.getDeclaredFields()));
         for (Field field : fields) {
             if (field.getName().equalsIgnoreCase(newFieldName)) {
                 return field;
@@ -76,7 +92,7 @@ public final class ClassUtils {
             .orElse(null);
     }
 
-    static String toCamelCase(String fieldName) {
+    public static String toCamelCase(String fieldName) {
         if (fieldName == null || !fieldName.contains("_")) {
             return fieldName;
         }
