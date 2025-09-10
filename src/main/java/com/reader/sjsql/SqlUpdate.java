@@ -1,7 +1,6 @@
 package com.reader.sjsql;
 
 import com.reader.sjsql.SqlKeywords.Op;
-import com.reader.sjsql.result.ClassUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,13 +13,13 @@ import java.util.stream.Collectors;
 
 public class SqlUpdate {
 
-    private static final String REF_OBJECT_PREFIX = "$.";
     private final String table;
     private final Map<String, List<Object>> columnValues;
-    public final SqlCondition<SqlUpdate> where;
     private boolean agree_without_where_clause = false;
     private boolean replacedRefValue = false;
     private List<?> dataset;
+
+    public final SqlCondition<SqlUpdate> where;
 
     private SqlUpdate(String table) {
         this.table = table;
@@ -69,7 +68,7 @@ public class SqlUpdate {
     }
 
     public SqlUpdate set$(String column) {
-        return this.set(column, REF_OBJECT_PREFIX + column);
+        return this.set(column, RefValue.ref(column));
     }
 
     public SqlUpdate where(String column, Op op) {
@@ -162,7 +161,7 @@ public class SqlUpdate {
         for (Object object : this.dataset) {
             // replace where params
             List<Object> whereParams = new ArrayList<>(this.where.params());
-            replaceRefObjectValue(object, whereParams);
+            RefValue.replaceForList(object, whereParams);
             results.add(whereParams);
         }
 
@@ -179,46 +178,13 @@ public class SqlUpdate {
         for (Object object : this.dataset) {
             for (Entry<String, List<Object>> entry : columnValues.entrySet()) {
                 List<Object> values = entry.getValue();
-                Object newValue = replaceRefObjectValue(object, values.get(idx));
+                Object newValue = RefValue.replace(object, values.get(idx));
                 values.set(idx, newValue);
             }
             idx += 1;
         }
 
         this.replacedRefValue = true;
-    }
-
-    private void replaceRefObjectValue(Object entity, List<Object> values) {
-        for (int i = 0; i < values.size(); i++) {
-            Object value = values.get(i);
-            Object newValue = replaceRefObjectValue(entity, value);
-            if (newValue != null && !Objects.equals(value, newValue)) {
-                // replace oldValue with newValue
-                values.set(i, newValue);
-            }
-        }
-    }
-
-    private Object replaceRefObjectValue(Object entity, Object value) {
-        if (value instanceof String valueString
-            && valueString.startsWith(REF_OBJECT_PREFIX)) {
-            String columnValue = valueString.substring(REF_OBJECT_PREFIX.length());
-            return getFieldValue(entity, columnValue);
-        }
-
-        return value;
-    }
-
-    private Object getFieldValue(Object entity, String column) {
-        if (entity instanceof Map<?, ?> map) {
-            return map.get(column);
-        }
-
-        try {
-            return ClassUtils.getFieldValue(entity, ClassUtils.toCamelCase(column));
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

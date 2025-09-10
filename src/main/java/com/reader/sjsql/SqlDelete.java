@@ -1,20 +1,18 @@
 package com.reader.sjsql;
 
 import com.reader.sjsql.SqlKeywords.Op;
-import com.reader.sjsql.result.ClassUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class SqlDelete {
 
-    private static final String REF_OBJECT_PREFIX = "$.";
     private final String table;
-    public final SqlCondition<SqlDelete> where;
     private boolean agree_without_where_clause = false;
     private List<?> dataset;
+
+    public final SqlCondition<SqlDelete> where;
 
     private SqlDelete(String table) {
         this.table = table;
@@ -79,7 +77,7 @@ public class SqlDelete {
             for (Object entity : this.dataset) {
                 List<Object> entityParams = new ArrayList<>();
                 for (Object param : this.where.params()) {
-                    Object replacedParam = replaceRefObjectValue(entity, param);
+                    Object replacedParam = RefValue.replace(entity, param);
                     entityParams.add(SqlEscape.escape(replacedParam));
                 }
                 paramsList.add(entityParams.toArray());
@@ -91,20 +89,4 @@ public class SqlDelete {
         return paramsList.toArray(new Object[0][]);
     }
 
-    private Object replaceRefObjectValue(Object entity, Object value) {
-        if (value instanceof String valueString && valueString.startsWith(REF_OBJECT_PREFIX)) {
-            String columnValue = valueString.substring(REF_OBJECT_PREFIX.length());
-            if (entity instanceof Map<?, ?> map) {
-                return map.get(columnValue);
-            }
-
-            try {
-                return ClassUtils.getFieldValue(entity, ClassUtils.toCamelCase(columnValue));
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        return value;
-    }
 }

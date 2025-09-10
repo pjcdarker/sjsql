@@ -16,12 +16,12 @@ public class SqlSelect {
     private final StringBuilder joinBuilder;
     private final List<UnionTable> unionTables;
     private final List<Object> joinParams;
-
-    public final SqlCondition<SqlSelect> where;
     private StringBuilder groupByBuilder;
-    public final SqlCondition<SqlSelect> having;
     private StringBuilder orderByBuilder;
     private String limit = "";
+
+    public final SqlCondition<SqlSelect> where;
+    public final SqlCondition<SqlSelect> having;
 
     private SqlSelect(String table) {
         this.table = table;

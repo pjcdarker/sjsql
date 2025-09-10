@@ -188,7 +188,7 @@ class SqlUpdateTest extends DatabaseTest {
                                     .set$("name")
                                     .set$("email")
                                     .set$("code")
-                                    .where("id", eq("$.id"));
+                                    .where("id", eq(RefValue.ref("id")));
 
         assertEquals(4, update.params().length);
 
@@ -229,7 +229,7 @@ class SqlUpdateTest extends DatabaseTest {
                                     .set$("email")
                                     .set$("code")
                                     .set$("create_time")
-                                    .where("id", eq("$.id"));
+                                    .where("id", eq(RefValue.ref("id")));
 
         final int[] result = execute_batch_update(update);
         assertEquals(4, result.length);
@@ -249,7 +249,7 @@ class SqlUpdateTest extends DatabaseTest {
                                     .set$("code")
                                     // matched row all set enabled=0
                                     .set("enabled", 0)
-                                    .where("id", eq("$.id"));
+                                    .where("id", eq(RefValue.ref("id")));
 
         final int[] result = execute_batch_update(update);
         assertEquals(4, result.length);

@@ -1,5 +1,6 @@
 package com.reader.sjsql;
 
+import static com.reader.sjsql.RefValue.ref;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -86,7 +87,7 @@ class SqlDeleteTest extends DatabaseTest {
         account2.setId(3L);
 
         SqlDelete sqlDelete = SqlDelete.batch("account", List.of(account1, account2, account3))
-                                       .where("id", Op.eq("$.id"));
+                                       .where("id", Op.eq(ref("id")));
 
         Object[][] params = sqlDelete.batchParams();
         assertEquals(3, params.length);
@@ -111,7 +112,7 @@ class SqlDeleteTest extends DatabaseTest {
         List<Map<String, Object>> maps = List.of(map1, map2);
 
         SqlDelete sqlDelete = SqlDelete.batch("account", maps)
-                                       .where("id", Op.eq("$.id"));
+                                       .where("id", Op.eq(ref("id")));
 
         Object[][] params = sqlDelete.batchParams();
         assertEquals(2, params.length);
