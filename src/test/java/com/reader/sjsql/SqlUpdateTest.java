@@ -205,7 +205,7 @@ class SqlUpdateTest extends DatabaseTest {
         Map<String, Object> map = new HashMap<>();
         map.put("name", "Tom");
         map.put("code", "aaa");
-        map.put("email", "123@qq.com");
+        map.put("email", "123@test.com");
 
         SqlUpdate sqlUpdate = SqlUpdate.table("account", map)
                                        .set$("name")
@@ -287,6 +287,6 @@ class SqlUpdateTest extends DatabaseTest {
     }
 
     private int[] execute_batch_update(SqlUpdate sqlUpdate) throws SQLException {
-        return jdbcClient.executeBatch(sqlUpdate);
+        return jdbcClient.executeBatch(sqlUpdate.toSql(), sqlUpdate.batchParams());
     }
 }

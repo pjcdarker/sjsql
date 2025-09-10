@@ -35,7 +35,7 @@ public enum SqlKeywords {
     VALUES(" VALUES "),
     UPDATE("UPDATE "),
     SET(" SET "),
-
+    DELETE("DELETE "),
     ;
 
     private final String format;

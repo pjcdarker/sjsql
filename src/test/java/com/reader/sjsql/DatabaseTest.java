@@ -8,7 +8,9 @@ import com.reader.sjsql.helper.SimpleJdbcClient;
 import com.reader.sjsql.model.Account;
 import com.reader.sjsql.result.ResultType;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -61,7 +63,37 @@ class DatabaseTest {
                     create_time datetime
                 )
                 """);
+        }
+    }
 
+    @AfterAll
+    static void afterAll() throws SQLException {
+        cleanupTestData();
+    }
+
+    @BeforeEach
+    void beforeEach() throws SQLException {
+        cleanupTestData();
+        insertTestData();
+    }
+
+
+    @AfterEach
+    void afterEach() throws SQLException {
+        cleanupTestData();
+    }
+
+
+    private static void cleanupTestData() throws SQLException {
+        try (Statement stmt = jdbcClient.getConnection().createStatement()) {
+            stmt.execute("DELETE FROM " + T_PAYMENT_ORDER + " where trade_no like '%TRADE%'");
+            stmt.execute("DELETE FROM " + T_TENANT + " where name like '%test%'");
+            stmt.execute("DELETE FROM " + T_ACCOUNT + " where name like '%test%' OR email like '%test%'");
+        }
+    }
+
+    private static void insertTestData() throws SQLException {
+        try (Statement stmt = jdbcClient.getConnection().createStatement()) {
             stmt.execute("INSERT INTO account (id, name, email, enabled, create_time) VALUES " +
                 "(1, 'Alice', 'alice@test.com', 1, '2025-09-01 10:30:00')");
 
@@ -74,6 +106,7 @@ class DatabaseTest {
             stmt.execute("INSERT INTO account (id, name, email, enabled, create_time) VALUES " +
                 "(4, 'David', 'david@test.com', 1, '2025-07-20 16:20:00')");
 
+            //
             stmt.execute("INSERT INTO tenant (id, account_id, name, enabled, create_time) VALUES " +
                 "(1, 1, 'T1@test', 1, '2025-09-01 10:30:00')");
 
@@ -87,15 +120,6 @@ class DatabaseTest {
             stmt.execute("INSERT INTO payment_order (id, account_id, tenant_id, trade_no, create_time) VALUES " +
                 "(2, 1, null, 'TRADE002', '2025-09-02 11:00:00')");
 
-        }
-    }
-
-    @AfterAll
-    static void afterAll() throws SQLException {
-        try (Statement stmt = jdbcClient.getConnection().createStatement()) {
-            stmt.execute("DELETE FROM " + T_PAYMENT_ORDER + " where trade_no like '%TRADE%'");
-            stmt.execute("DELETE FROM " + T_TENANT + " where name like '%test%'");
-            stmt.execute("DELETE FROM " + T_ACCOUNT + " where name like '%test%' OR email like '%test%'");
         }
     }
 
@@ -129,6 +153,10 @@ class DatabaseTest {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+
+    protected int[] execute_batch_update(String sql, Object[][] params) throws SQLException {
+        return jdbcClient.executeBatch(sql, params);
     }
 
     protected Account queryAccount(Map<String, Op> params) {

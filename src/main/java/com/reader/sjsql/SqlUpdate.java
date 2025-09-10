@@ -210,7 +210,7 @@ public class SqlUpdate {
     }
 
     private Object getFieldValue(Object entity, String column) {
-        if (entity instanceof Map map) {
+        if (entity instanceof Map<?, ?> map) {
             return map.get(column);
         }
 
