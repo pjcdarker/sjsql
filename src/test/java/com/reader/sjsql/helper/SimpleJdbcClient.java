@@ -64,8 +64,7 @@ public class SimpleJdbcClient {
     }
 
     /**
-     * （INSERT、UPDATE、DELETE）
-     *
+     * INSERT、UPDATE、DELETE.
      */
     public int executeUpdate(String sql, Object[] params) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -77,11 +76,11 @@ public class SimpleJdbcClient {
         }
     }
 
-    public int[] executeBatchUpdate(SqlUpdate sqlUpdate) throws SQLException {
-        return executeBatchUpdate(sqlUpdate.toSql(), sqlUpdate.batchParams());
+    public int[] executeBatch(SqlUpdate sqlUpdate) throws SQLException {
+        return executeBatch(sqlUpdate.toSql(), sqlUpdate.batchParams());
     }
 
-    public int[] executeBatchUpdate(String sql, Object[][] batchParams) throws SQLException {
+    public int[] executeBatch(String sql, Object[][] batchParams) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             for (Object[] params : batchParams) {
                 for (int i = 0; i < params.length; i++) {

@@ -7,9 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.reader.sjsql.SqlKeywords.Op;
 import com.reader.sjsql.model.Account;
-import com.reader.sjsql.result.ResultType;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
@@ -32,7 +30,7 @@ class SqlUpdateTest extends DatabaseTest {
 
         assert_execute_update(update);
 
-        Account account = getAccount(Map.of("id", eq(1)));
+        Account account = queryAccount(Map.of("id", eq(1)));
 
         assertEquals("john.doe@test.com", account.getEmail());
     }
@@ -52,7 +50,7 @@ class SqlUpdateTest extends DatabaseTest {
 
         assert_execute_update(update);
 
-        Account account = getAccount(Map.of("id", eq(1)));
+        Account account = queryAccount(Map.of("id", eq(1)));
         assertEquals("TEST-EVENT002", account.getCode());
     }
 
@@ -68,7 +66,7 @@ class SqlUpdateTest extends DatabaseTest {
 
         assert_execute_update(update);
 
-        Account account = getAccount(Map.of("id", eq(1)));
+        Account account = queryAccount(Map.of("id", eq(1)));
         assertEquals("TEST-PROD002", account.getCode());
         assertEquals(false, account.getEnabled());
     }
@@ -91,7 +89,7 @@ class SqlUpdateTest extends DatabaseTest {
 
         assert_execute_update(update);
 
-        Account account = getAccount(Map.of("id", eq(1)));
+        Account account = queryAccount(Map.of("id", eq(1)));
         assertNull(account.getEmail());
     }
 
@@ -116,7 +114,7 @@ class SqlUpdateTest extends DatabaseTest {
         assertArrayEquals(new Object[]{"No Where Clause Update", "nowhere@test.com"}, update.params());
         assert_execute_update(update, 4);
 
-        Account account = getAccount(Map.of("id", eq(2)));
+        Account account = queryAccount(Map.of("id", eq(2)));
         assertEquals("nowhere@test.com", account.getEmail());
     }
 
@@ -131,7 +129,7 @@ class SqlUpdateTest extends DatabaseTest {
 
         assert_execute_update(update);
 
-        Account account = getAccount(Map.of("id", eq(1)));
+        Account account = queryAccount(Map.of("id", eq(1)));
         assertEquals("John'; DROP TABLE users; --", account.getName());
     }
 
@@ -146,7 +144,7 @@ class SqlUpdateTest extends DatabaseTest {
 
         assert_execute_update(update, 0);
 
-        Account account = getAccount(Map.of("id", eq(99L)));
+        Account account = queryAccount(Map.of("id", eq(99L)));
         assertNull(account);
     }
 
@@ -170,7 +168,7 @@ class SqlUpdateTest extends DatabaseTest {
 
         assert_execute_update(update);
 
-        Account dbAccount = getAccount(Map.of("id", eq(1)));
+        Account dbAccount = queryAccount(Map.of("id", eq(1)));
 
         assertNull(dbAccount.getCreateTime());
         assertEquals("ENTITY002", dbAccount.getCode());
@@ -196,7 +194,7 @@ class SqlUpdateTest extends DatabaseTest {
 
         assert_execute_update(update);
 
-        Account dbAccount = getAccount(Map.of("id", eq(1)));
+        Account dbAccount = queryAccount(Map.of("id", eq(1)));
 
         assertEquals("ENTITY002", dbAccount.getCode());
     }
@@ -219,7 +217,7 @@ class SqlUpdateTest extends DatabaseTest {
 
         assert_execute_update(sqlUpdate);
 
-        Account dbAccount = getAccount(Map.of("id", eq(4)));
+        Account dbAccount = queryAccount(Map.of("id", eq(4)));
         assertEquals("Tom", dbAccount.getName());
     }
 
@@ -237,7 +235,7 @@ class SqlUpdateTest extends DatabaseTest {
         assertEquals(4, result.length);
         assertEquals(1, result[1]);
 
-        Account dbAccount = getAccount(Map.of("id", eq(4)));
+        Account dbAccount = queryAccount(Map.of("id", eq(4)));
 
         assertEquals("ENTITY004", dbAccount.getCode());
     }
@@ -257,7 +255,7 @@ class SqlUpdateTest extends DatabaseTest {
         assertEquals(4, result.length);
         assertEquals(1, result[1]);
 
-        Account dbAccount = getAccount(Map.of("id", eq(4)));
+        Account dbAccount = queryAccount(Map.of("id", eq(4)));
 
         assertEquals("ENTITY004", dbAccount.getCode());
         assertFalse(dbAccount.getEnabled());
@@ -289,13 +287,6 @@ class SqlUpdateTest extends DatabaseTest {
     }
 
     private int[] execute_batch_update(SqlUpdate sqlUpdate) throws SQLException {
-        return jdbcClient.executeBatchUpdate(sqlUpdate);
-    }
-
-    private static Account getAccount(Map<String, Op> params) {
-        SqlSelect sqlSelect = SqlSelect.from("account");
-        params.forEach(sqlSelect::where);
-
-        return jdbcClient.queryForObject(sqlSelect, ResultType.of(Account.class));
+        return jdbcClient.executeBatch(sqlUpdate);
     }
 }

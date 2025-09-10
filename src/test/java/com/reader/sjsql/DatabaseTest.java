@@ -2,8 +2,11 @@ package com.reader.sjsql;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.reader.sjsql.SqlKeywords.Op;
 import com.reader.sjsql.helper.H2TestDataSource;
 import com.reader.sjsql.helper.SimpleJdbcClient;
+import com.reader.sjsql.model.Account;
+import com.reader.sjsql.result.ResultType;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -126,5 +129,12 @@ class DatabaseTest {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+
+    protected Account queryAccount(Map<String, Op> params) {
+        SqlSelect sqlSelect = SqlSelect.from("account");
+        params.forEach(sqlSelect::where);
+
+        return jdbcClient.queryForObject(sqlSelect, ResultType.of(Account.class));
     }
 }

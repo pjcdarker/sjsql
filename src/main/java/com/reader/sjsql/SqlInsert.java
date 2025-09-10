@@ -7,17 +7,20 @@ import com.reader.sjsql.result.ClassUtils;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 
 public class SqlInsert {
 
     private final String table;
-    private final Map<String, List<?>> columnValues;
+    private final Map<String, List<Object>> columnValues;
+    private boolean updatedColumnValues = false;
+    private List<?> dataset;
 
     private SqlInsert(String table) {
         this.table = table;
@@ -29,36 +32,35 @@ public class SqlInsert {
     }
 
     public static <T> SqlInsert into(String table, T entity) {
-        SqlInsert sqlInsert = new SqlInsert(table);
-        Objects.requireNonNull(entity, "Entity cannot be null");
-        List<Field> fields = ClassUtils.getPersistentFields(entity.getClass());
-        try {
-            for (Field field : fields) {
-                Object fieldValue = ClassUtils.getFieldValue(entity, field);
-                if (fieldValue != null) {
-                    String columnName = toSnakeCase(field.getName());
-                    sqlInsert.value(columnName, fieldValue);
-                }
+        Objects.requireNonNull(entity, "entity cannot be null");
+        return batch(table, List.of(entity));
+    }
 
-                // ignore null value
-            }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+    public static <T> SqlInsert batch(String table, List<T> entities) {
+        Objects.requireNonNull(entities, "entities cannot be null");
+        if (entities.isEmpty()) {
+            throw new IllegalArgumentException("entities cannot be empty");
         }
+
+        SqlInsert sqlInsert = new SqlInsert(table);
+        sqlInsert.dataset = entities;
 
         return sqlInsert;
     }
 
-    public SqlInsert value(String column, Object value) {
-        return values(column, Collections.singletonList(value));
-    }
+    public <T> SqlInsert values(String column, T value) {
+        List<Object> values = new ArrayList<>();
+        int size = this.dataset == null ? 1 : this.dataset.size();
+        for (int i = 0; i < size; i++) {
+            values.add(value);
+        }
 
-    public SqlInsert values(String column, List<?> values) {
-        columnValues.put(column, values);
+        this.columnValues.put(column, values);
         return this;
     }
 
     public String toSql() {
+        updateColumnValues();
         List<String> columns = List.copyOf(columnValues.keySet());
         validateColumnValueSize(columns);
 
@@ -72,30 +74,75 @@ public class SqlInsert {
         ;
         String[] placeholders = new String[columns.size()];
         Arrays.fill(placeholders, "?");
-        final String placeholderString = String.join(",", placeholders);
-
-        int valueSize = columnValues.get(columns.getFirst()).size();
-        for (int i = 0; i < valueSize; i++) {
-            sql.append("(")
-               .append(placeholderString)
-               .append(")")
-               .append(i == valueSize - 1 ? ";" : ",")
-            ;
-        }
+        String placeholderString = String.join(",", placeholders);
+        sql.append("(")
+           .append(placeholderString)
+           .append(")")
+           .append(";")
+        ;
 
         return sql.toString();
     }
 
     public Object[] params() {
-        List<Object> allParams = new ArrayList<>();
-        int valueSize = columnValues.values().stream().findFirst().orElse(List.of()).size();
+        return batchParams()[0];
+    }
+
+    public Object[][] batchParams() {
+        updateColumnValues();
+        int valueSize = this.dataset == null ? 1 : this.dataset.size();
+        List<List<Object>> allParams = new ArrayList<>();
         for (int i = 0; i < valueSize; i++) {
-            for (Entry<String, List<?>> entry : columnValues.entrySet()) {
-                allParams.add(SqlEscape.escape(entry.getValue().get(i)));
+            List<Object> params = new ArrayList<>();
+            for (Entry<String, List<Object>> entry : columnValues.entrySet()) {
+                params.add(SqlEscape.escape(entry.getValue().get(i)));
             }
+            allParams.add(params);
         }
 
-        return allParams.toArray();
+        // Object[][]
+        return allParams.stream()
+                        .map(List::toArray)
+                        .toArray(Object[][]::new);
+    }
+
+    private void updateColumnValues() {
+        if (this.dataset == null || this.updatedColumnValues) {
+            return;
+        }
+        try {
+            Set<String> nullValuesColumns = new HashSet<>();
+            Set<String> nonNullValuesColumns = new HashSet<>();
+            for (Object object : this.dataset) {
+                List<Field> fields = ClassUtils.getPersistentFields(object.getClass());
+                for (Field field : fields) {
+                    String columnName = toSnakeCase(field.getName());
+                    List<Object> objects = this.columnValues.get(columnName);
+                    // from values set
+                    if (objects != null && objects.size() == this.dataset.size()) {
+                        continue;
+                    }
+                    Object fieldValue = ClassUtils.getFieldValue(object, field);
+                    List<Object> values = this.columnValues.computeIfAbsent(columnName, k -> new ArrayList<>());
+                    values.add(fieldValue);
+                    if (fieldValue != null) {
+                        nonNullValuesColumns.add(columnName);
+                    } else {
+                        nullValuesColumns.add(columnName);
+                    }
+                }
+            }
+
+            // remove non null values columns
+            nullValuesColumns.removeAll(nonNullValuesColumns);
+            for (String column : nullValuesColumns) {
+                this.columnValues.remove(column);
+            }
+
+            this.updatedColumnValues = true;
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void validateColumnValueSize(List<String> columns) {
