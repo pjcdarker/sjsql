@@ -19,7 +19,7 @@ public class SqlInsert {
 
     private final String table;
     private final Map<String, List<Object>> columnValues;
-    private boolean updatedColumnValues = false;
+    private boolean columnValuesUpdated = false;
     private List<?> dataset;
 
     private SqlInsert(String table) {
@@ -107,29 +107,17 @@ public class SqlInsert {
     }
 
     private void updateColumnValues() {
-        if (this.dataset == null || this.updatedColumnValues) {
+        if (this.dataset == null || this.columnValuesUpdated) {
             return;
         }
         try {
             Set<String> nullValuesColumns = new HashSet<>();
             Set<String> nonNullValuesColumns = new HashSet<>();
             for (Object object : this.dataset) {
-                List<Field> fields = ClassUtils.getPersistentFields(object.getClass());
-                for (Field field : fields) {
-                    String columnName = toSnakeCase(field.getName());
-                    List<Object> objects = this.columnValues.get(columnName);
-                    // from values set
-                    if (objects != null && objects.size() == this.dataset.size()) {
-                        continue;
-                    }
-                    Object fieldValue = ClassUtils.getFieldValue(object, field);
-                    List<Object> values = this.columnValues.computeIfAbsent(columnName, k -> new ArrayList<>());
-                    values.add(fieldValue);
-                    if (fieldValue != null) {
-                        nonNullValuesColumns.add(columnName);
-                    } else {
-                        nullValuesColumns.add(columnName);
-                    }
+                if (object instanceof Map<?, ?> map) {
+                    updateFromMap(map, nonNullValuesColumns, nullValuesColumns);
+                } else {
+                    updateFromObject(object, nonNullValuesColumns, nullValuesColumns);
                 }
             }
 
@@ -139,10 +127,51 @@ public class SqlInsert {
                 this.columnValues.remove(column);
             }
 
-            this.updatedColumnValues = true;
+            this.columnValuesUpdated = true;
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void updateFromObject(Object object, Set<String> nonNullValuesColumns, Set<String> nullValuesColumns)
+        throws Throwable {
+        List<Field> fields = ClassUtils.getPersistentFields(object.getClass());
+        for (Field field : fields) {
+            String columnName = toSnakeCase(field.getName());
+            if (meetSizeFromValuesSet(columnName)) {
+                continue;
+            }
+            Object fieldValue = ClassUtils.getFieldValue(object, field);
+            addColumnValues(columnName, fieldValue, nonNullValuesColumns, nullValuesColumns);
+        }
+    }
+
+    private void updateFromMap(Map<?, ?> map, Set<String> nonNullValuesColumns, Set<String> nullValuesColumns) {
+        for (Entry<?, ?> entry : map.entrySet()) {
+            String columnName = (String) entry.getKey();
+            if (meetSizeFromValuesSet(columnName)) {
+                continue;
+            }
+            Object value = entry.getValue();
+            addColumnValues(columnName, value, nonNullValuesColumns, nullValuesColumns);
+        }
+    }
+
+    private void addColumnValues(String columnName, Object fieldValue, Set<String> nonNullValuesColumns,
+        Set<String> nullValuesColumns) {
+        List<Object> values = this.columnValues.computeIfAbsent(columnName, k -> new ArrayList<>());
+        values.add(fieldValue);
+        if (fieldValue != null) {
+            nonNullValuesColumns.add(columnName);
+        } else {
+            nullValuesColumns.add(columnName);
+        }
+    }
+
+    private boolean meetSizeFromValuesSet(String columnName) {
+        List<Object> objects = this.columnValues.get(columnName);
+        // from values set
+        return objects != null && objects.size() == this.dataset.size();
     }
 
     private void validateColumnValueSize(List<String> columns) {

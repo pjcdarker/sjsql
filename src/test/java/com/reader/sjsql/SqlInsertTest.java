@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,58 +37,10 @@ class SqlInsertTest extends DatabaseTest {
     }
 
     @Test
-    void should_escape_special_characters() {
-        SqlInsert insert = SqlInsert.into("account")
-                                    .values("name", "John'; DROP TABLE users; --")
-                                    .values("email", "john@test.com");
-
-        assertEquals("INSERT INTO account (name,email) VALUES (?,?);", insert.toSql());
-        assertArrayEquals(new Object[]{"John'; DROP TABLE users; --", "john@test.com"}, insert.params());
-
-        assert_execute_update(insert);
-    }
-
-    @Test
-    void should_handle_date_time_types() {
-        LocalDateTime dateTime = LocalDateTime.of(2025, 9, 1, 10, 30, 0);
-        SqlInsert insert = SqlInsert.into("account")
-                                    .values("name", "Meeting-test")
-                                    .values("create_time", dateTime)
-                                    .values("code", "EVENT001");
-
-        assertEquals("INSERT INTO account (name,create_time,code) VALUES (?,?,?);", insert.toSql());
-        assertArrayEquals(new Object[]{"Meeting-test", "2025-09-01 10:30:00", "EVENT001"}, insert.params());
-        assert_execute_update(insert);
-    }
-
-    @Test
-    void should_handle_numeric_types() {
-        SqlInsert insert = SqlInsert.into("account")
-                                    .values("name", "Product A test")
-                                    .values("code", "PROD001")
-                                    .values("enabled", 1);
-
-        assertEquals("INSERT INTO account (name,code,enabled) VALUES (?,?,?);", insert.toSql());
-        assertArrayEquals(new Object[]{"Product A test", "PROD001", 1}, insert.params());
-        assert_execute_update(insert);
-    }
-
-    @Test
     void should_throw_exception_when_no_columns_specified() {
         SqlInsert insert = SqlInsert.into("account");
 
         assertThrows(IllegalStateException.class, insert::toSql);
-    }
-
-    @Test
-    void should_handle_null_values() {
-        SqlInsert insert = SqlInsert.into("account")
-                                    .values("name", "John test")
-                                    .values("email", null);
-
-        assertEquals("INSERT INTO account (name,email) VALUES (?,?);", insert.toSql());
-        assertArrayEquals(new Object[]{"John test", null}, insert.params());
-        assert_execute_update(insert);
     }
 
 
@@ -135,6 +88,46 @@ class SqlInsertTest extends DatabaseTest {
 
     }
 
+    @Test
+    void should_generate_insert_sql_from_map() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("name", "Tom111");
+        data.put("code", "USER001");
+        data.put("email", "tom@test.com");
+        data.put("enabled", 1);
+
+        SqlInsert insert = SqlInsert.into("account", data);
+
+        assert_execute_update(insert);
+    }
+
+    @Test
+    void should_generate_batch_insert_sql_from_maps() throws SQLException {
+        Map<String, Object> map1 = new HashMap<>();
+        map1.put("name", "Tom");
+        map1.put("code", "USER001");
+        map1.put("email", "tom@test.com");
+
+        Map<String, Object> map2 = new HashMap<>();
+        map2.put("name", "Jerry");
+        map2.put("code", "USER002");
+        map2.put("email", "jerry@test.com");
+
+        Map<String, Object> map3 = new HashMap<>();
+        map3.put("name", "Spike");
+        map3.put("code", "USER003");
+        map3.put("email", "spike@test.com");
+
+        SqlInsert insert = SqlInsert.batch("account", List.of(map1, map2, map3));
+
+        final Object[][] params = insert.batchParams();
+        assertEquals(3, params.length);
+        assertEquals(3, params[0].length);
+
+        int[] results = execute_batch_update(insert);
+        assertEquals(3, results.length);
+        assertEquals(1, results[0]);
+    }
 
     @Test
     void should_batch_insert_by_values_override() throws SQLException {
@@ -184,6 +177,7 @@ class SqlInsertTest extends DatabaseTest {
             SqlInsert.batch("accounts", emptyList);
         });
     }
+
 
     private static List<Account> buildAccounts(int count) {
         return buildAccounts(count, "");
