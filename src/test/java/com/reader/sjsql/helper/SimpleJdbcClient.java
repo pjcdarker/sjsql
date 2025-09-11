@@ -132,4 +132,17 @@ public class SimpleJdbcClient {
             throw new RuntimeException(e);
         }
     }
+
+    public <E> List<E> queryForList(SqlSelect sqlSelect, ResultType<List<E>> resultType) throws Throwable {
+        try (PreparedStatement ps = connection.prepareStatement(sqlSelect.toSql())) {
+            Object[] params = sqlSelect.params();
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return (List<E>) resultType.mappingList(rs);
+            }
+        }
+    }
 }

@@ -15,7 +15,7 @@ public class SqlCondition<T> {
 
     private SqlCondition() {
         this.params = new ArrayList<>();
-        this.builder = new StringBuilder();
+        this.builder = new StringBuilder(100);
     }
 
     public static <T> SqlCondition<T> create() {
@@ -114,12 +114,7 @@ public class SqlCondition<T> {
     }
 
     public String toSql() {
-        StringBuilder result = new StringBuilder();
-        if (!this.builder.isEmpty()) {
-            result.append(this.builder);
-        }
-
-        return result.toString();
+        return this.builder.toString();
     }
 
     public boolean isBlank() {

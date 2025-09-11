@@ -85,7 +85,7 @@ public class SqlUpdate {
         List<String> columns = new ArrayList<>(columnValues.keySet());
         validateColumnValueSize(columns);
 
-        StringBuilder sql = new StringBuilder();
+        StringBuilder sql = new StringBuilder(80 + columns.toString().length());
         sql.append(SqlKeywords.UPDATE)
            .append(this.table)
            .append(SqlKeywords.SET);

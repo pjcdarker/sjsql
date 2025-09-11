@@ -64,7 +64,7 @@ public class SqlInsert {
         List<String> columns = List.copyOf(columnValues.keySet());
         validateColumnValueSize(columns);
 
-        StringBuilder sql = new StringBuilder();
+        StringBuilder sql = new StringBuilder(80 + columns.toString().length() * 2);
         sql.append(SqlKeywords.INSERT_INTO)
            .append(table)
            .append(" (")

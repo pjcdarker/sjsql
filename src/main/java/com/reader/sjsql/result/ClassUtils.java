@@ -20,7 +20,7 @@ public final class ClassUtils {
 
     private static final Map<Class<?>, List<Field>> persistent_field_cache = new ConcurrentHashMap<>(32);
     private static final Map<Class<?>, List<Field>> all_declared_field_cache = new ConcurrentHashMap<>(32);
-    private static final Map<Class<?>, List<Field>> declared_field_cache = new ConcurrentHashMap<>(32);
+    private static final Map<String, Field> declared_field_cache = new ConcurrentHashMap<>(32);
 
     private ClassUtils() {
     }
@@ -34,6 +34,9 @@ public final class ClassUtils {
 
     public static Object getFieldValue(Object instance, Field field)
         throws Throwable {
+        if (field == null) {
+            return null;
+        }
         final MethodHandle getter = MethodHandles
             .privateLookupIn(field.getDeclaringClass(), MethodHandles.lookup())
             .findGetter(field.getDeclaringClass(), field.getName(), field.getType());
@@ -45,17 +48,7 @@ public final class ClassUtils {
 
     public static Object getFieldValue(Object instance, String fieldName)
         throws Throwable {
-        final Field field = getFieldByName(instance.getClass(), fieldName);
-        if (field == null) {
-            return null;
-        }
-        final MethodHandle getter = MethodHandles
-            .privateLookupIn(field.getDeclaringClass(), MethodHandles.lookup())
-            .findGetter(field.getDeclaringClass(), field.getName(), field.getType());
-        if (getter == null) {
-            return null;
-        }
-        return getter.invoke(instance);
+        return getFieldValue(instance, getFieldByName(instance.getClass(), fieldName));
     }
 
     public static List<Field> getDeclaredFields(Class<?> clazz) {
@@ -72,22 +65,25 @@ public final class ClassUtils {
 
     static Field getFieldByName(Class<?> clazz, String fieldName) throws Exception {
         String newFieldName = toCamelCase(fieldName);
-        try {
-            return clazz.getDeclaredField(newFieldName);
-        } catch (NoSuchFieldException e) {
-            // ignore
-        }
-
-        List<Field> fields = declared_field_cache.computeIfAbsent(clazz, key -> List.of(clazz.getDeclaredFields()));
-        for (Field field : fields) {
-            if (field.getName().equalsIgnoreCase(newFieldName)) {
-                return field;
+        Field field = declared_field_cache.computeIfAbsent(clazz + "." + newFieldName, key -> {
+            try {
+                return clazz.getDeclaredField(newFieldName);
+            } catch (NoSuchFieldException e) {
+                // ignore
             }
+            return Arrays.stream(clazz.getDeclaredFields())
+                         .filter(e -> e.getName().equalsIgnoreCase(newFieldName))
+                         .findFirst()
+                         .orElse(null);
+        });
+
+        if (field != null) {
+            return field;
         }
 
         return getDeclaredFields(clazz.getSuperclass())
             .stream()
-            .filter(field -> field.getName().equalsIgnoreCase(newFieldName))
+            .filter(e -> e.getName().equalsIgnoreCase(newFieldName))
             .findFirst()
             .orElse(null);
     }

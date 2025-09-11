@@ -27,13 +27,13 @@ public class SqlSelect {
         this.table = table;
         this.columns = new ArrayList<>();
         this.summaryColumns = new ArrayList<>();
-        this.joinBuilder = new StringBuilder();
+        this.joinBuilder = new StringBuilder(100);
         this.unionTables = new ArrayList<>();
         this.joinParams = new ArrayList<>();
         this.where = SqlCondition.create(this);
-        this.groupByBuilder = new StringBuilder();
+        this.groupByBuilder = new StringBuilder(50);
         this.having = SqlCondition.create(this);
-        this.orderByBuilder = new StringBuilder();
+        this.orderByBuilder = new StringBuilder(50);
     }
 
     public static SqlSelect from(String table) {
@@ -245,7 +245,7 @@ public class SqlSelect {
         List<String> finalColumns = allColumns();
         String columnsSql = finalColumns.isEmpty() ? "*" : String.join(",", finalColumns);
 
-        StringBuilder result = new StringBuilder();
+        StringBuilder result = new StringBuilder(300 + columnsSql.length());
         result.append(selectFromTableSql(this.table, columnsSql));
         if (this.unionTables.isEmpty()) {
             return result.append(this.joinBuilder)

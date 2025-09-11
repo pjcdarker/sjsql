@@ -49,7 +49,7 @@ public class SqlDelete {
         if (this.where.isBlank() && !this.agree_without_where_clause) {
             throw new IllegalStateException("[WARN] The delete statement is without where clause");
         }
-        StringBuilder sql = new StringBuilder();
+        StringBuilder sql = new StringBuilder(80 + this.where.params().toString().length());
         sql.append(SqlKeywords.DELETE)
            .append(SqlKeywords.FROM)
            .append(table);
