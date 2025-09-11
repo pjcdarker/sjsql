@@ -22,6 +22,8 @@ public enum SqlKeywords {
     AND("\n AND "),
     OR("\n OR "),
     IN(" IN "),
+    IS_NULL(" IS NULL "),
+    IS_NOT_NULL(" IS NOT NULL "),
     NOT_IN(" NOT IN "),
     LIKE(" LIKE "),
     GROUP_BY("\n GROUP BY "),
@@ -57,6 +59,8 @@ public enum SqlKeywords {
             "LIKE_", op -> "LIKE ?",
             "_LIKE_", op -> "LIKE ?",
             "BETWEEN", op -> "BETWEEN ? AND ?",
+            IS_NULL.name(), op -> "IS NULL",
+            IS_NOT_NULL.name(), op -> "IS NOT NULL",
             "IN", op -> {
                 String logicalType = op.reverse ? "NOT IN" : "IN";
                 return parametrizeList(op, logicalType);
@@ -112,6 +116,14 @@ public enum SqlKeywords {
             return new Op("<=", param);
         }
 
+        public static Op is_null() {
+            return new Op(IS_NULL.name(), null);
+        }
+
+        public static Op is_not_null() {
+            return new Op(IS_NOT_NULL.name(), null);
+        }
+
         public static Op like(Object param) {
             return new Op("LIKE", param);
         }
@@ -150,6 +162,11 @@ public enum SqlKeywords {
 
         public String getSign() {
             return sign;
+        }
+
+        public boolean isNoneParam() {
+            return IS_NULL.name().equals(sign)
+                || IS_NOT_NULL.name().equals(sign);
         }
 
         public String format(String column) {

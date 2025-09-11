@@ -77,8 +77,12 @@ public class SqlCondition<T> {
         return this.or(column, op);
     }
 
-    private void addParam(Op ops) {
-        final Object param = ops.escapeParam();
+    private void addParam(Op op) {
+        if (op.isNoneParam()) {
+            return;
+        }
+
+        Object param = op.escapeParam();
         if (param instanceof Collection<?> c) {
             this.params.addAll(c);
             return;

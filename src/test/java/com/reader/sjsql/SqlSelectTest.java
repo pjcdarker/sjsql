@@ -430,6 +430,46 @@ class SqlSelectTest extends DatabaseTest {
     }
 
     @Test
+    void should_output_where_is_null_with_and_condition_sql() {
+        SqlSelect sqlSelect = SqlSelect
+            .from(T_ACCOUNT)
+            .select("id", "name")
+            .where("email", Op.is_null())
+            .where
+            .and("name", Op.like_("test"))
+            .end();
+
+        assertEquals(SqlKeywords.SELECT + "id,name"
+                + SqlKeywords.FROM + T_ACCOUNT
+                + SqlKeywords.WHERE + "email IS NULL"
+                + SqlKeywords.AND + "name" + SqlKeywords.LIKE + "?",
+            sqlSelect.toSql());
+        assertArrayEquals(new Object[]{"test%"}, sqlSelect.params());
+
+        assert_run_sql(sqlSelect);
+    }
+
+    @Test
+    void should_output_where_is_not_null_with_or_condition_sql() {
+        SqlSelect sqlSelect = SqlSelect
+            .from(T_ACCOUNT)
+            .select("id", "name")
+            .where("email", Op.is_not_null())
+            .where
+            .or("code", Op.eq("TEST"))
+            .end();
+
+        assertEquals(SqlKeywords.SELECT + "id,name"
+                + SqlKeywords.FROM + T_ACCOUNT
+                + SqlKeywords.WHERE + "email IS NOT NULL"
+                + SqlKeywords.OR + "(code=?)",
+            sqlSelect.toSql());
+        assertArrayEquals(new Object[]{"TEST"}, sqlSelect.params());
+
+        assert_run_sql(sqlSelect);
+    }
+
+    @Test
     void should_output_nest_cond_within_where_sql() {
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT)
                                        .select("id", "name");
