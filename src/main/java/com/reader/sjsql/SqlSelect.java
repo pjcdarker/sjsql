@@ -268,8 +268,8 @@ public class SqlSelect {
         List<Object> params = new ArrayList<>();
         // Note: add params in order.
         params.addAll(this.joinParams);
-        params.addAll(this.where.params());
-        params.addAll(this.having.params());
+        params.addAll(this.where.params().stream().map(SqlEscape::escape).toList());
+        params.addAll(this.having.params().stream().map(SqlEscape::escape).toList());
 
         return params.toArray();
     }

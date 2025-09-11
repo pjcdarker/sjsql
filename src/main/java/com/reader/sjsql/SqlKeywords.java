@@ -1,9 +1,6 @@
 package com.reader.sjsql;
 
-import static com.reader.sjsql.SqlEscape.escape;
-
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -11,33 +8,36 @@ import java.util.function.Function;
 public enum SqlKeywords {
 
     SELECT("SELECT "),
-    FROM("\n FROM "),
-    JOIN("\n JOIN "),
-    LEFT_JOIN("\n LEFT JOIN "),
-    RIGHT_JOIN("\n RIGHT JOIN "),
-    UNION("\n UNION \n"),
-    UNION_ALL("\n UNION ALL \n"),
-    ON(" ON "),
-    WHERE("\n WHERE "),
-    AND("\n AND "),
-    OR("\n OR "),
-    IN(" IN "),
-    IS_NULL(" IS NULL "),
-    IS_NOT_NULL(" IS NOT NULL "),
-    NOT_IN(" NOT IN "),
-    LIKE(" LIKE "),
-    GROUP_BY("\n GROUP BY "),
-    DESC(" DESC "),
-    LIMIT("\n LIMIT "),
-    HAVING("\n HAVING "),
-    ORDER_BY("\n ORDER BY "),
-    BETWEEN("BETWEEN"),
+    FROM(" FROM "),
     AS(" AS "),
+    JOIN(" JOIN "),
+    LEFT_JOIN(" LEFT JOIN "),
+    RIGHT_JOIN(" RIGHT JOIN "),
+    UNION(" UNION "),
+    UNION_ALL(" UNION ALL "),
+    ON(" ON "),
+    WHERE(" WHERE "),
+
+    GROUP_BY(" GROUP BY "),
+    HAVING(" HAVING "),
+    ORDER_BY(" ORDER BY "),
+    DESC(" DESC "),
+    LIMIT(" LIMIT "),
+
     INSERT_INTO("INSERT INTO "),
     VALUES(" VALUES "),
     UPDATE("UPDATE "),
     SET(" SET "),
     DELETE("DELETE "),
+
+    AND(" AND "),
+    OR(" OR "),
+    IN(" IN "),
+    IS_NULL(" IS NULL "),
+    IS_NOT_NULL(" IS NOT NULL "),
+    NOT_IN(" NOT IN "),
+    LIKE(" LIKE "),
+    BETWEEN(" BETWEEN "),
     ;
 
     private final String format;
@@ -53,28 +53,26 @@ public enum SqlKeywords {
 
     public static class Op {
 
+        private static final String IS_NULL = "IS NULL";
+        private static final String IS_NOT_NULL = "IS NOT NULL";
+        private static final String IN = "IN";
+        private static final String NOT_IN = "NOT IN";
+        private static final String BETWEEN = "BETWEEN";
+        private static final String LIKE = "LIKE";
+
         private static final Map<String, Function<Op, String>> formatFunc = Map.of(
-            "LIKE", op -> "LIKE ?",
-            "_LIKE", op -> "LIKE ?",
-            "LIKE_", op -> "LIKE ?",
-            "_LIKE_", op -> "LIKE ?",
-            "BETWEEN", op -> "BETWEEN ? AND ?",
-            IS_NULL.name(), op -> "IS NULL",
-            IS_NOT_NULL.name(), op -> "IS NOT NULL",
-            "IN", op -> {
-                String logicalType = op.reverse ? "NOT IN" : "IN";
+            LIKE, op -> "LIKE ?",
+            BETWEEN, op -> "BETWEEN ? AND ?",
+            IS_NULL, op -> IS_NULL,
+            IS_NOT_NULL, op -> IS_NOT_NULL,
+            IN, op -> {
+                String logicalType = op.reverse ? NOT_IN : IN;
                 return parametrizeList(op, logicalType);
             },
-            "NOT IN", op -> {
-                String logicalType = op.reverse ? "IN" : "NOT IN";
+            NOT_IN, op -> {
+                String logicalType = op.reverse ? IN : NOT_IN;
                 return parametrizeList(op, logicalType);
             }
-        );
-
-        private static final Map<String, Function<Op, Object>> escapeParamFunc = Map.of(
-            "_LIKE", op -> "%" + escape(op.param),
-            "LIKE_", op -> escape(op.param) + "%",
-            "_LIKE_", op -> "%" + escape(op.param) + "%"
         );
 
         private final String sign;
@@ -117,43 +115,43 @@ public enum SqlKeywords {
         }
 
         public static Op is_null() {
-            return new Op(IS_NULL.name(), null);
+            return new Op(IS_NULL, null);
         }
 
         public static Op is_not_null() {
-            return new Op(IS_NOT_NULL.name(), null);
+            return new Op(IS_NOT_NULL, null);
         }
 
         public static Op like(Object param) {
-            return new Op("LIKE", param);
+            return new Op(LIKE, param);
         }
 
         public static Op _like(Object param) {
-            return new Op("_LIKE", param);
+            return new Op(LIKE, "%" + (param));
         }
 
         public static Op like_(Object param) {
-            return new Op("LIKE_", param);
+            return new Op(LIKE, (param) + "%");
         }
 
         public static Op _like_(Object param) {
-            return new Op("_LIKE_", param);
+            return new Op(LIKE, "%" + (param) + "%");
         }
 
         public static <E> Op in(List<E> params) {
-            return new Op("IN", params);
+            return new Op(IN, params);
         }
 
         public static <E> Op in(List<E> params, boolean reverse) {
-            return new Op("IN", params, reverse);
+            return new Op(IN, params, reverse);
         }
 
         public static <E> Op not_in(List<E> params) {
-            return new Op("NOT IN", params);
+            return new Op(NOT_IN, params);
         }
 
         public static <E> Op between(E start, E end) {
-            return new Op(BETWEEN.name(), List.of(start, end));
+            return new Op(BETWEEN, List.of(start, end));
         }
 
         public static Op create(String op, Object param) {
@@ -165,8 +163,8 @@ public enum SqlKeywords {
         }
 
         public boolean isNoneParam() {
-            return IS_NULL.name().equals(sign)
-                || IS_NOT_NULL.name().equals(sign);
+            return IS_NULL.equals(sign)
+                || IS_NOT_NULL.equals(sign);
         }
 
         public String format(String column) {
@@ -182,19 +180,6 @@ public enum SqlKeywords {
             return param;
         }
 
-
-        public Object escapeParam() {
-            Function<Op, Object> function = escapeParamFunc.get(this.sign);
-            if (function != null) {
-                return function.apply(this);
-            }
-
-            if (param instanceof Collection<?> list) {
-                return list.stream().map(SqlEscape::escape).toList();
-            }
-
-            return escape(this.param);
-        }
 
         private static String parametrizeList(Op op, String opt) {
             int size = ((List<?>) op.param).size();

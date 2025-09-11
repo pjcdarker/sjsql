@@ -82,7 +82,7 @@ public class SqlCondition<T> {
             return;
         }
 
-        Object param = op.escapeParam();
+        Object param = op.getParam();
         if (param instanceof Collection<?> c) {
             this.params.addAll(c);
             return;

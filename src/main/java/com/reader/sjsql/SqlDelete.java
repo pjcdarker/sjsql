@@ -69,7 +69,12 @@ public class SqlDelete {
 
     public Object[][] batchParams() {
         if (this.dataset == null) {
-            return new Object[][]{this.where.params().toArray()};
+            Object[] array = this.where
+                .params()
+                .stream()
+                .map(SqlEscape::escape)
+                .toArray();
+            return new Object[][]{array};
         }
 
         List<Object[]> paramsList = new ArrayList<>();
