@@ -136,7 +136,7 @@ class DatabaseTest {
 
     protected void execute_query(String sql, Object... params) throws SQLException {
         try {
-            final List<Map<String, Object>> resultMap = jdbcClient.execute(sql, params);
+            final List<Map<String, Object>> resultMap = jdbcClient.query(sql, params);
             System.err.println("resultMap: " + resultMap);
         } catch (Exception e) {
             e.printStackTrace();
@@ -163,6 +163,10 @@ class DatabaseTest {
         SqlSelect sqlSelect = SqlSelect.from("account");
         params.forEach(sqlSelect::where);
 
-        return jdbcClient.queryForObject(sqlSelect, ResultType.of(Account.class));
+        try {
+            return jdbcClient.query(sqlSelect, ResultType.of(Account.class));
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.reader.sjsql.SqlKeywords.Op;
 import com.reader.sjsql.model.Account;
-import com.reader.sjsql.result.ResultType;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
@@ -93,7 +92,7 @@ class SqlInsertTest extends DatabaseTest {
 
 
     @Test
-    void should_insert_entity() {
+    void should_insert_entity() throws Throwable {
         Account account = new Account();
         account.setId(100L);
         account.setName("Entity Test");
@@ -109,7 +108,7 @@ class SqlInsertTest extends DatabaseTest {
         assert_execute_update(sqlInsert);
 
         SqlSelect sqlSelect = SqlSelect.from("account").where("code", Op.eq("ENTITY001"));
-        Account account1 = jdbcClient.queryForObject(sqlSelect, ResultType.of(Account.class));
+        Account account1 = jdbcClient.queryForObject(sqlSelect, Account.class);
 
         assertEquals(account.getName(), account1.getName());
         assertEquals(account.getEmail(), account1.getEmail());

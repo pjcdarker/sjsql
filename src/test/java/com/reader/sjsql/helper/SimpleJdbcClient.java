@@ -22,46 +22,10 @@ public class SimpleJdbcClient {
         this.connection = connection;
     }
 
-    public List<Map<String, Object>> execute(String sql, Object[] params) throws SQLException {
-        if (isSelectStatement(sql)) {
-            return executeQuery(sql, params);
-        } else {
-            executeUpdate(sql, params);
-            return new ArrayList<>();
-        }
+    public Connection getConnection() {
+        return connection;
     }
 
-    public <R> R executeQuery(SqlSelect sqlSelect, Class<R> clazz) throws Throwable {
-        return this.executeQuery(sqlSelect, ResultType.of(clazz));
-    }
-
-    public <R> R executeQuery(SqlSelect sqlSelect, ResultType<R> resultType) throws Throwable {
-        try (PreparedStatement ps = connection.prepareStatement(sqlSelect.toSql())) {
-            Object[] params = sqlSelect.params();
-            for (int i = 0; i < params.length; i++) {
-                ps.setObject(i + 1, params[i]);
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (resultType.isCollectionType()) {
-                    return (R) resultType.mappingList(rs);
-                }
-                return resultType.mapping(rs);
-            }
-        }
-    }
-
-    private List<Map<String, Object>> executeQuery(String sql, Object[] params) throws SQLException {
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) {
-                ps.setObject(i + 1, params[i]);
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return resultSetToList(rs);
-            }
-        }
-    }
 
     /**
      * INSERT、UPDATE、DELETE.
@@ -92,11 +56,46 @@ public class SimpleJdbcClient {
         }
     }
 
-    private boolean isSelectStatement(String sql) {
-        return sql.trim().toLowerCase().startsWith("select");
+    public <T> T queryForObject(SqlSelect sqlSelect, Class<T> tClass) throws Throwable {
+        return query(sqlSelect, ResultType.of(tClass));
     }
 
-    private List<Map<String, Object>> resultSetToList(ResultSet rs) throws SQLException {
+
+    public <T> List<T> queryForList(SqlSelect sqlSelect, Class<T> tClass) throws Throwable {
+        return query(sqlSelect, ResultType.forList(tClass));
+    }
+
+    public <T> T query(SqlSelect sqlSelect, ResultType<T> resultType) {
+        try (PreparedStatement ps = connection.prepareStatement(sqlSelect.toSql())) {
+            final Object[] params = sqlSelect.params();
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (resultType.isCollectionType()) {
+                    return (T) resultType.mappingList(rs);
+                }
+                return resultType.mapping(rs);
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<Map<String, Object>> query(String sql, Object[] params) throws SQLException {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return mapList(rs);
+            }
+        }
+    }
+
+    private List<Map<String, Object>> mapList(ResultSet rs) throws SQLException {
         List<Map<String, Object>> result = new ArrayList<>();
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
@@ -112,37 +111,5 @@ public class SimpleJdbcClient {
         }
 
         return result;
-    }
-
-    public Connection getConnection() {
-        return connection;
-    }
-
-    public <T> T queryForObject(SqlSelect sqlSelect, ResultType<T> resultType) {
-        try (PreparedStatement ps = connection.prepareStatement(sqlSelect.toSql())) {
-            final Object[] params = sqlSelect.params();
-            for (int i = 0; i < params.length; i++) {
-                ps.setObject(i + 1, params[i]);
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return resultType.mapping(rs);
-            }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public <E> List<E> queryForList(SqlSelect sqlSelect, ResultType<List<E>> resultType) throws Throwable {
-        try (PreparedStatement ps = connection.prepareStatement(sqlSelect.toSql())) {
-            Object[] params = sqlSelect.params();
-            for (int i = 0; i < params.length; i++) {
-                ps.setObject(i + 1, params[i]);
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return (List<E>) resultType.mappingList(rs);
-            }
-        }
     }
 }

@@ -24,7 +24,7 @@ class ResultTypeTest extends DatabaseTest {
             .select("a.id", "a.name", "a.create_time", "a.enabled")
             .where("id", Op.eq(1));
 
-        final Account account = jdbcClient.executeQuery(sqlSelect, Account.class);
+        final Account account = jdbcClient.queryForObject(sqlSelect, Account.class);
 
         assertEquals(1L, account.getId());
         assertEquals("Alice", account.getName());
@@ -40,9 +40,7 @@ class ResultTypeTest extends DatabaseTest {
             .addColumn("a.create_time", "updateTime")
             .where("id", Op.eq(1));
 
-        ResultType<Account> resultType = ResultType.of(Account.class);
-
-        final Account account = jdbcClient.executeQuery(sqlSelect, resultType);
+        final Account account = jdbcClient.queryForObject(sqlSelect, Account.class);
 
         System.err.println(account);
         assertEquals(1L, account.getId());
@@ -61,7 +59,7 @@ class ResultTypeTest extends DatabaseTest {
         ResultType<Account> resultType = ResultType.of(Account.class)
                                                    .ignoreUnknownField(true);
 
-        Account account = jdbcClient.executeQuery(sqlSelect, resultType);
+        Account account = jdbcClient.query(sqlSelect, resultType);
 
         System.err.println(account);
         assertEquals(1L, account.getId());
@@ -79,8 +77,8 @@ class ResultTypeTest extends DatabaseTest {
 
         ResultType<Account> resultType = ResultType.of(Account.class);
 
-        assertThrows(NoSuchFieldException.class, () -> {
-            jdbcClient.executeQuery(sqlSelect, resultType);
+        assertThrows(Exception.class, () -> {
+            jdbcClient.query(sqlSelect, resultType);
         });
     }
 
@@ -94,9 +92,7 @@ class ResultTypeTest extends DatabaseTest {
             .leftJoin(T_TENANT, "b", "a.id", "b.account_id")
             .where("a.id", Op.eq(1));
 
-        ResultType<Account> resultType = ResultType.of(Account.class);
-
-        final Account account = jdbcClient.executeQuery(sqlSelect, resultType);
+        final Account account = jdbcClient.queryForObject(sqlSelect, Account.class);
 
         System.err.println("account: " + account);
 
@@ -123,7 +119,7 @@ class ResultTypeTest extends DatabaseTest {
         ResultType<Account> resultType = ResultType.of(Account.class)
                                                    .aliasObjectField("b", "tenant");
 
-        final Account account = jdbcClient.executeQuery(sqlSelect, resultType);
+        final Account account = jdbcClient.query(sqlSelect, resultType);
 
         System.err.println("account: " + account);
 
@@ -144,9 +140,9 @@ class ResultTypeTest extends DatabaseTest {
             .select("a.id", "a.name", "a.create_time")
             .orderBy("id");
 
-        ResultType<List<Account>> resultType = ResultType.forList(Account.class);
+        // ResultType<List<Account>> resultType = ResultType.forList(Account.class);
 
-        final List<Account> accounts = jdbcClient.executeQuery(sqlSelect, resultType);
+        final List<Account> accounts = jdbcClient.queryForList(sqlSelect, Account.class);
 
         accounts.forEach(System.err::println);
         assertEquals(4, accounts.size());
@@ -163,7 +159,7 @@ class ResultTypeTest extends DatabaseTest {
 
         ResultType<List<Map<String, Object>>> resultType = ResultType.forMapList();
 
-        final List<Map<String, Object>> accounts = jdbcClient.executeQuery(sqlSelect, resultType);
+        final List<Map<String, Object>> accounts = jdbcClient.query(sqlSelect, resultType);
 
         accounts.forEach(System.err::println);
         assertEquals(4, accounts.size());
@@ -187,7 +183,7 @@ class ResultTypeTest extends DatabaseTest {
 
         ResultType<Account> resultType = ResultType.of(Account.class);
 
-        final Account account = jdbcClient.executeQuery(sqlSelect, resultType);
+        final Account account = jdbcClient.query(sqlSelect, resultType);
 
         System.err.println("account: " + account);
 
@@ -225,7 +221,7 @@ class ResultTypeTest extends DatabaseTest {
 
         ResultType<Account> resultType = ResultType.of(Account.class);
 
-        final Account account = jdbcClient.executeQuery(sqlSelect, resultType);
+        final Account account = jdbcClient.query(sqlSelect, resultType);
 
         System.err.println("account: " + account);
 
