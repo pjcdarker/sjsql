@@ -16,7 +16,7 @@ public class SqlUpdate {
     private final String table;
     private final Map<String, List<Object>> columnValues;
     private boolean agree_without_where_clause = false;
-    private boolean replacedRefValue = false;
+    private boolean refValueReplaced = false;
     private List<?> dataset;
 
     public final SqlCondition<SqlUpdate> where;
@@ -170,7 +170,7 @@ public class SqlUpdate {
     }
 
     private void updateColumnValues() {
-        if (this.replacedRefValue || this.dataset == null) {
+        if (this.refValueReplaced || this.dataset == null) {
             return;
         }
 
@@ -184,7 +184,7 @@ public class SqlUpdate {
             idx += 1;
         }
 
-        this.replacedRefValue = true;
+        this.refValueReplaced = true;
     }
 
 }
