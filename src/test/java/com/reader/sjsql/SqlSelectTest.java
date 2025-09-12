@@ -666,19 +666,6 @@ class SqlSelectTest extends DatabaseTest {
 
     @Test
     void should_output_where_not_in_sql() {
-        SqlSelect
-            .from(T_ACCOUNT)
-            .select("id", "name");
-        SqlSelect
-            .from(T_ACCOUNT)
-            .select("id", "name")
-            .where.and("id", Op.not_in(Arrays.asList(1, 2, 3, 4)))
-                  .and("name", Op.eq("1"))
-                  .end();
-        SqlSelect
-            .from(T_ACCOUNT)
-            .select("id", "name");
-
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT)
             .select("id", "count(*) cnt")

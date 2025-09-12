@@ -231,6 +231,35 @@ class SqlConditionTest {
         assertArrayEquals(new Object[]{1L, 2L, 3L}, condition.params().toArray());
     }
 
+    @Test
+    void should_be_in_subquery_sql() {
+        SqlSelect subQuery = SqlSelect
+            .from("account")
+            .select("id")
+            .where("name", Op._like("@test.com"));
+
+        SqlCondition<SqlSelect> condition = SqlCondition.create();
+        condition.and("id", Op.in(subQuery));
+
+        assertEquals("id IN (SELECT id FROM account WHERE name LIKE ?)", condition.toSql());
+        assertArrayEquals(new Object[]{"%@test.com"}, condition.params().toArray());
+
+    }
+
+    @Test
+    void should_be_not_in_subquery_sql() {
+        SqlSelect subQuery = SqlSelect
+            .from("account")
+            .select("id")
+            .where("name", Op._like("@test.com"));
+
+        SqlCondition<SqlSelect> condition = SqlCondition.create();
+        condition.and("id", Op.not_in(subQuery));
+
+        assertEquals("id NOT IN (SELECT id FROM account WHERE name LIKE ?)", condition.toSql());
+        assertArrayEquals(new Object[]{"%@test.com"}, condition.params().toArray());
+    }
+
 
     @Test
     void should_be_between_sql() {

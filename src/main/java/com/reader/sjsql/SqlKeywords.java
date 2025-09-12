@@ -32,9 +32,9 @@ public enum SqlKeywords {
 
     AND(" AND "),
     OR(" OR "),
-    IN(" IN "),
     IS_NULL(" IS NULL "),
     IS_NOT_NULL(" IS NOT NULL "),
+    IN(" IN "),
     NOT_IN(" NOT IN "),
     LIKE(" LIKE "),
     BETWEEN(" BETWEEN "),
@@ -66,10 +66,16 @@ public enum SqlKeywords {
             IS_NULL, op -> IS_NULL,
             IS_NOT_NULL, op -> IS_NOT_NULL,
             IN, op -> {
+                if (op.sqlSelect != null) {
+                    return "IN (" + op.sqlSelect.toSql() + ")";
+                }
                 String logicalType = op.reverse ? NOT_IN : IN;
                 return parametrizeList(op, logicalType);
             },
             NOT_IN, op -> {
+                if (op.sqlSelect != null) {
+                    return "NOT IN (" + op.sqlSelect.toSql() + ")";
+                }
                 String logicalType = op.reverse ? IN : NOT_IN;
                 return parametrizeList(op, logicalType);
             }
@@ -78,6 +84,7 @@ public enum SqlKeywords {
         private final String sign;
         private final Object param;
         private boolean reverse;
+        private SqlSelect sqlSelect;
 
         private Op(String sign, Object param) {
             this.sign = sign;
@@ -88,6 +95,12 @@ public enum SqlKeywords {
             this.sign = sign;
             this.param = param;
             this.reverse = reverse;
+        }
+
+        private static Op create(String sign, SqlSelect sqlSelect) {
+            Op op = new Op(sign, Arrays.asList(sqlSelect.params()));
+            op.sqlSelect = sqlSelect;
+            return op;
         }
 
         public static Op eq(Object param) {
@@ -146,8 +159,16 @@ public enum SqlKeywords {
             return new Op(IN, params, reverse);
         }
 
+        public static Op in(SqlSelect sqlSelect) {
+            return create(IN, sqlSelect);
+        }
+
         public static <E> Op not_in(List<E> params) {
             return new Op(NOT_IN, params);
+        }
+
+        public static Op not_in(SqlSelect sqlSelect) {
+            return create(NOT_IN, sqlSelect);
         }
 
         public static <E> Op between(E start, E end) {
@@ -179,7 +200,6 @@ public enum SqlKeywords {
         public Object getParam() {
             return param;
         }
-
 
         private static String parametrizeList(Op op, String opt) {
             int size = ((List<?>) op.param).size();
