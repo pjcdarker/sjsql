@@ -31,3 +31,26 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+// H2
+tasks.register<Test>("h2Test") {
+    description = "Run H2 tests"
+    group = "database"
+    useJUnitPlatform()
+    systemProperty("test.db.type", "h2")
+    include("**/*Test.class")
+    // filter {
+    //     includeTestsMatching("H2TestSuite")
+    // }
+}
+
+// MySQL
+tasks.register<Test>("mysqlTest") {
+    description = "Run MySQL tests"
+    group = "database"
+    useJUnitPlatform()
+    systemProperty("test.db.type", "mysql")
+    include("**/*Test.class")
+    // filter {
+    //     includeTestsMatching("MysqlTestSuite")
+    // }
+}

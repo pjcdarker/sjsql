@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.reader.sjsql.SqlKeywords.Op;
 import com.reader.sjsql.helper.H2TestDataSource;
+import com.reader.sjsql.helper.Mysql8TestDataSource;
 import com.reader.sjsql.helper.SimpleJdbcClient;
 import com.reader.sjsql.model.Account;
 import com.reader.sjsql.result.ResultType;
@@ -28,9 +29,15 @@ class DatabaseTest {
 
     @BeforeAll
     static void beforeAll() throws SQLException {
-        // H2
-        Connection connection = H2TestDataSource.getConnection();
-        // Connection connection = Mysql8TestDataSource.getConnection();
+
+        String databaseType = System.getProperty("test.db.type", "h2");
+        System.err.println("==================databaseType: " + databaseType);
+        Connection connection;
+        switch (databaseType) {
+            case "mysql" -> connection = Mysql8TestDataSource.getConnection();
+            default -> connection = H2TestDataSource.getConnection();
+        }
+
         jdbcClient = new SimpleJdbcClient(connection);
 
         try (Statement stmt = connection.createStatement()) {
