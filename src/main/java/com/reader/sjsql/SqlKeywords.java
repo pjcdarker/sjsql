@@ -13,6 +13,7 @@ public enum SqlKeywords {
     JOIN(" JOIN "),
     LEFT_JOIN(" LEFT JOIN "),
     RIGHT_JOIN(" RIGHT JOIN "),
+    FULL_JOIN(" FULL OUTER JOIN "),
     UNION(" UNION "),
     UNION_ALL(" UNION ALL "),
     ON(" ON "),

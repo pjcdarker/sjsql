@@ -114,6 +114,16 @@ public class SqlSelect {
         return rightJoin(wrapSubSql(subTable.toSql()), alias, leftOn, rightOn);
     }
 
+    public SqlSelect fullJoin(String table, String alias, String leftOn, String rightOn) {
+        joinTable(table, alias, SqlKeywords.FULL_JOIN.toString(), "=", leftOn, rightOn);
+        return this;
+    }
+
+    public SqlSelect fullJoin(SqlSelect subTable, String alias, String leftOn, String rightOn) {
+        appendSubTableParams(subTable);
+        return fullJoin(wrapSubSql(subTable.toSql()), alias, leftOn, rightOn);
+    }
+
     public void joinTable(String table, String alias, String joinType,
         String joinOp,
         String leftOn,
