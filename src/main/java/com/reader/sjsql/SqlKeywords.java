@@ -38,6 +38,8 @@ public enum SqlKeywords {
     NOT_IN(" NOT IN "),
     LIKE(" LIKE "),
     BETWEEN(" BETWEEN "),
+    EXISTS("EXISTS "),
+    NOT_EXISTS("NOT EXISTS "),
     ;
 
     private final String format;
@@ -174,7 +176,6 @@ public enum SqlKeywords {
         public static <E> Op between(E start, E end) {
             return new Op(BETWEEN, List.of(start, end));
         }
-
         public static Op create(String op, Object param) {
             return new Op(op, param);
         }

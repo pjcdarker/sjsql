@@ -270,4 +270,32 @@ class SqlConditionTest {
         assertEquals(2, condition.params().size());
     }
 
+    @Test
+    void should_be_exists_subquery_sql() {
+        SqlSelect subQuery = SqlSelect
+            .from("account")
+            .select("id")
+            .where("code", Op.eq("TEST"));
+
+        SqlCondition<SqlSelect> condition = SqlCondition.create();
+        condition.exists(subQuery);
+
+        assertEquals("EXISTS (SELECT id FROM account WHERE code=?)", condition.toSql());
+        assertArrayEquals(new Object[]{"TEST"}, condition.params().toArray());
+    }
+
+    @Test
+    void should_be_not_exists_subquery_sql() {
+        SqlSelect subQuery = SqlSelect
+            .from("account")
+            .select("id")
+            .where("code", Op.eq("TEST"));
+
+        SqlCondition<SqlSelect> condition = SqlCondition.create();
+        condition.not_exists(subQuery);
+
+        assertEquals("NOT EXISTS (SELECT id FROM account WHERE code=?)", condition.toSql());
+        assertArrayEquals(new Object[]{"TEST"}, condition.params().toArray());
+    }
+
 }
