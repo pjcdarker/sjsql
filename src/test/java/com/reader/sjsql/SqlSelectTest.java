@@ -53,9 +53,41 @@ class SqlSelectTest extends DatabaseTest {
     void should_add_column() {
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT)
                                        .addColumn("id")
-                                       .addColumn("name");
+                                       .addColumn("name")
+                                       .addColumn("email", true)
+                                       .addColumn("code", false);
 
-        final String expected = SqlKeywords.SELECT + "id,name" + SqlKeywords.FROM + T_ACCOUNT;
+        String expected = SqlKeywords.SELECT + "id,name,email" + SqlKeywords.FROM + T_ACCOUNT;
+        assertEquals(expected, sqlSelect.toSql());
+
+        assert_run_sql(sqlSelect);
+    }
+
+    @Test
+    void should_add_column_alias() {
+        SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT)
+                                       .addColumn("id")
+                                       .addColumn("name", "account_name", true)
+                                       .addColumn("email", "EE", false);
+
+        assertEquals(SqlKeywords.SELECT + "id,name AS account_name" + SqlKeywords.FROM + T_ACCOUNT,
+            sqlSelect.toSql());
+
+        assert_run_sql(sqlSelect);
+    }
+
+    @Test
+    void should_add_summary_column() {
+        SqlSelect sqlSelect = SqlSelect
+            .from(T_ACCOUNT)
+            .addColumn("code")
+            .addSummaryColumn("COUNT(*)", "total", true)
+            .addSummaryColumn("SUM(distinct name)", "nameCount", false)
+            .groupBy("code");
+
+        String expected = SqlKeywords.SELECT + "code,COUNT(*) AS total"
+            + SqlKeywords.FROM + T_ACCOUNT
+            + SqlKeywords.GROUP_BY + "code";
         assertEquals(expected, sqlSelect.toSql());
 
         assert_run_sql(sqlSelect);

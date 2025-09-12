@@ -67,21 +67,36 @@ public class SqlSelect {
     }
 
     public SqlSelect addColumn(String col) {
-        this.columns.add(col);
+        return this.addColumn(col, true);
+    }
+
+    public SqlSelect addColumn(String col, boolean appendIfTrue) {
+        if (appendIfTrue) {
+            this.columns.add(col);
+        }
+
         return this;
     }
 
     public SqlSelect addColumn(String col, String alias) {
-        return this.addColumn(col + columnAlias(alias));
+        return this.addColumn(col, alias, true);
     }
 
-    public SqlSelect addSummaryColumn(String col) {
-        this.summaryColumns.add(col);
-        return this;
+    public SqlSelect addColumn(String col, String alias, boolean appendIfTrue) {
+        return this.addColumn(col + columnAlias(alias), appendIfTrue);
     }
+
 
     public SqlSelect addSummaryColumn(String col, String alias) {
-        return this.addSummaryColumn(col + columnAlias(alias));
+        return this.addSummaryColumn(col, alias, true);
+    }
+
+    public SqlSelect addSummaryColumn(String col, String alias, boolean appendIfTrue) {
+        if (appendIfTrue) {
+            this.summaryColumns.add(col + columnAlias(alias));
+        }
+
+        return this;
     }
 
     public SqlSelect join(String table, String alias, String leftOn, String rightOn) {
