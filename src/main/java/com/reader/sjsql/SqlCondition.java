@@ -32,8 +32,14 @@ public class SqlCondition<T> {
     }
 
     public SqlCondition<T> and(String column, Op op) {
-        addCond(SqlKeywords.AND.toString(), op.format(column));
-        addParam(op);
+        return this.and(column, op, true);
+    }
+
+    public SqlCondition<T> and(String column, Op op, boolean appendIfTrue) {
+        if (appendIfTrue) {
+            addCond(SqlKeywords.AND.toString(), op.format(column));
+            addParam(op);
+        }
         return this;
     }
 
@@ -49,17 +55,38 @@ public class SqlCondition<T> {
     }
 
     public SqlCondition<T> and_ex(String column, Op op) {
+        return this.and_ex(column, op, true);
+    }
+
+    public SqlCondition<T> and_ex(String column, Op op, boolean appendIfTrue) {
         if (isBlank(op.getParam())) {
             return this;
         }
 
-        return this.and(column, op);
+        return this.and(column, op, appendIfTrue);
     }
 
     public SqlCondition<T> or(String column, Op op) {
-        addCond(SqlKeywords.OR.toString(), String.format(subFormat, op.format(column)));
-        addParam(op);
+        return this.or(column, op, true);
+    }
+
+    public SqlCondition<T> or(String column, Op op, boolean appendIfTrue) {
+        if (appendIfTrue) {
+            addCond(SqlKeywords.OR.toString(), String.format(subFormat, op.format(column)));
+            addParam(op);
+        }
         return this;
+    }
+
+    public SqlCondition<T> or_ex(String column, Op op) {
+        return this.or_ex(column, op, true);
+    }
+
+    public SqlCondition<T> or_ex(String column, Op op, boolean appendIfTrue) {
+        if (isBlank(op.getParam())) {
+            return this;
+        }
+        return this.or(column, op, appendIfTrue);
     }
 
     public SqlCondition<T> or(SqlCondition<Object> sqlCondition) {
@@ -71,13 +98,6 @@ public class SqlCondition<T> {
         return this;
     }
 
-    public SqlCondition<T> or_ex(String column, Op op) {
-        if (isBlank(op.getParam())) {
-            return this;
-        }
-
-        return this.or(column, op);
-    }
 
     public SqlCondition<T> exists(SqlSelect sqlSelect) {
         Objects.requireNonNull(sqlSelect, "sqlSelect cannot be null");

@@ -298,4 +298,46 @@ class SqlConditionTest {
         assertArrayEquals(new Object[]{"TEST"}, condition.params().toArray());
     }
 
+    @Test
+    void should_add_condition_with_append_or_not() {
+        SqlCondition<SqlSelect> condition = SqlCondition.create();
+        condition.and("name", Op.eq("John"), true)
+                 .and("code", Op.eq("Test"), false);
+
+        assertEquals("name=?", condition.toSql());
+        assertArrayEquals(new Object[]{"John"}, condition.params().toArray());
+    }
+
+    @Test
+    void should_add_ex_condition() {
+        SqlCondition<SqlSelect> condition = SqlCondition.create();
+        condition.and_ex("name", Op.eq(""), true)
+                 .and_ex("code", Op.eq("Test"), false)
+                 .and_ex("email", Op.eq("a@test.com"), true);
+
+        assertEquals("email=?", condition.toSql());
+        assertArrayEquals(new Object[]{"a@test.com"}, condition.params().toArray());
+    }
+
+    @Test
+    void should_add_or_conditions() {
+        SqlCondition<SqlSelect> condition = SqlCondition.create();
+        condition.or("name", Op.eq("John"), true)
+                 .or("code", Op.eq("TEST"), false);
+
+        assertEquals("(name=?)", condition.toSql());
+        assertArrayEquals(new Object[]{"John"}, condition.params().toArray());
+    }
+
+    @Test
+    void should_add_or_ex_conditions() {
+        SqlCondition<SqlSelect> condition = SqlCondition.create();
+        condition.or_ex("name", Op.eq(""), true)
+                 .or_ex("code", Op.eq(""), false)
+                 .or_ex("email", Op.eq("a@test.com"), true);
+
+        assertEquals("(email=?)", condition.toSql());
+        assertArrayEquals(new Object[]{"a@test.com"}, condition.params().toArray());
+    }
+
 }
