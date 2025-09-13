@@ -246,4 +246,15 @@ class ResultTypeTest extends DatabaseTest {
     }
 
 
+    @Test
+    void should_return_int_result_type() throws Throwable {
+        SqlSelect sqlSelect = SqlSelect
+            .from(T_ACCOUNT, "a")
+            .select("count(1)");
+
+        final Integer count = jdbcClient.queryForObject(sqlSelect, Integer.class);
+
+        assertEquals(4, count);
+    }
+
 }

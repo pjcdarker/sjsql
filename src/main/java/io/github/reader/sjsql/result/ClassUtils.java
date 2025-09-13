@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -144,20 +143,6 @@ public final class ClassUtils {
         return true;
     }
 
-    public static <T> Map<String, Object> persistentFieldValues(T instance) {
-        Map<String, Object> fieldValues = new LinkedHashMap<>();
-        final List<Field> fieldList = getPersistentFields(instance.getClass());
-        fieldList.forEach(field -> {
-            try {
-                fieldValues.put(field.getName(), ClassUtils.getFieldValue(instance, field));
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        return fieldValues;
-    }
-
     public static boolean isSimpleType(Class<?> clazz) {
         return clazz.isPrimitive()
             || clazz == String.class
@@ -174,4 +159,9 @@ public final class ClassUtils {
             || clazz == LocalDate.class
             || clazz == Date.class;
     }
+
+    public static boolean isMapType(Class<?> clazz) {
+        return clazz != null && Map.class.isAssignableFrom(clazz);
+    }
+
 }

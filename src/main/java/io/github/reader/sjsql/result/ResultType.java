@@ -63,14 +63,25 @@ public class ResultType<T> {
             rows.add(row);
         }
 
-        return toResultType(rows);
+        return processRows(rows);
     }
 
-    private List<T> toResultType(List<Map<String, Object>> rows) throws Throwable {
+    private List<T> processRows(List<Map<String, Object>> rows) throws Throwable {
         List<T> results = new ArrayList<>();
 
+        // simple type
+        if (ClassUtils.isSimpleType(this.resultType)) {
+            for (Map<String, Object> row : rows) {
+                row.forEach((columnName, value) -> {
+                    Object convertedValue = TypeConverter.convert(value, this.resultType);
+                    results.add((T) convertedValue);
+                });
+            }
+            return results;
+        }
+
         // Map, List<Map>
-        if (isMapType(this.resultType) || isMapType(this.elementType)) {
+        if (ClassUtils.isMapType(this.resultType) || ClassUtils.isMapType(this.elementType)) {
             for (Map<String, Object> row : rows) {
                 results.add((T) row);
             }
@@ -84,7 +95,7 @@ public class ResultType<T> {
                 String columnName = entry.getKey();
                 Object value = entry.getValue();
                 if (columnName.contains(".")) {
-                    mappingNestedField(instance, fieldObjects, columnName, value);
+                    mappingObjectField(instance, fieldObjects, columnName, value);
                     continue;
                 }
 
@@ -102,7 +113,7 @@ public class ResultType<T> {
     }
 
 
-    private void mappingNestedField(T instance, Map<String, Object> fieldObjectCache, String columnName, Object value)
+    private void mappingObjectField(T instance, Map<String, Object> fieldObjectCache, String columnName, Object value)
         throws Throwable {
         String[] columnNames = columnName.split("\\.");
         Object lastFieldObjectInstance = instance;
@@ -167,11 +178,5 @@ public class ResultType<T> {
         Class<?> targetClass = (elementType != null) ? elementType : resultType;
         return (T) targetClass.getDeclaredConstructor().newInstance();
     }
-
-
-    private boolean isMapType(Class<?> clazz) {
-        return clazz != null && Map.class.isAssignableFrom(clazz);
-    }
-
 
 }
