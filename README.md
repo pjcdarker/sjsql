@@ -6,6 +6,17 @@ simple java sql
 
 - jdk21+
 
+## maven
+
+```xml
+
+<dependency>
+    <groupId>io.github.pjcdarker</groupId>
+    <artifactId>sjsql</artifactId>
+    <version>0.2.0</version>
+</dependency>
+
+```
 
 ## select
 
