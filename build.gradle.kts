@@ -30,22 +30,16 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
-// H2
-tasks.register<Test>("h2Test") {
-    description = "Run H2 tests"
-    group = "database"
-    useJUnitPlatform()
-    systemProperty("test.db.type", "h2")
-    include("**/*Test.class")
-}
 
-// MySQL
-tasks.register<Test>("mysqlTest") {
-    description = "Run MySQL tests"
-    group = "database"
-    useJUnitPlatform()
-    systemProperty("test.db.type", "mysql")
-    include("**/*Test.class")
+// database test
+listOf("h2", "mysql").forEach {
+    tasks.register<Test>("${it}Test") {
+        description = "Run ${it.uppercase()} tests"
+        group = "database"
+        useJUnitPlatform()
+        systemProperty("test.db.type", it)
+        include("**/*Test.class")
+    }
 }
 
 mavenPublishing {
