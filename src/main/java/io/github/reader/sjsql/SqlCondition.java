@@ -1,0 +1,170 @@
+package io.github.reader.sjsql;
+
+import io.github.reader.sjsql.SqlKeywords.Op;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
+public class SqlCondition<T> {
+
+    private final List<Object> params;
+    private final StringBuilder builder;
+    private T host;
+    private String subFormat = "(%s)";
+
+    private SqlCondition() {
+        this.params = new ArrayList<>();
+        this.builder = new StringBuilder(100);
+    }
+
+    public static <T> SqlCondition<T> create() {
+        return new SqlCondition<>();
+    }
+
+    public static <T> SqlCondition<T> create(T host) {
+        SqlCondition<T> sqlCondition = create();
+        sqlCondition.host = host;
+
+        return sqlCondition;
+    }
+
+    public SqlCondition<T> and(String column, Op op) {
+        return this.and(column, op, true);
+    }
+
+    public SqlCondition<T> and(String column, Op op, boolean appendIfTrue) {
+        if (appendIfTrue) {
+            addCond(SqlKeywords.AND.toString(), op.format(column));
+            addParam(op);
+        }
+        return this;
+    }
+
+
+    public SqlCondition<T> and(SqlCondition<?> sqlCondition) {
+        if (sqlCondition.builder.isEmpty()) {
+            return this;
+        }
+
+        addCond(SqlKeywords.AND.toString(), String.format(subFormat, sqlCondition.toSql()));
+        this.params.addAll(sqlCondition.params);
+        return this;
+    }
+
+    public SqlCondition<T> and_ex(String column, Op op) {
+        return this.and_ex(column, op, true);
+    }
+
+    public SqlCondition<T> and_ex(String column, Op op, boolean appendIfTrue) {
+        if (isBlank(op.getParam())) {
+            return this;
+        }
+
+        return this.and(column, op, appendIfTrue);
+    }
+
+    public SqlCondition<T> or(String column, Op op) {
+        return this.or(column, op, true);
+    }
+
+    public SqlCondition<T> or(String column, Op op, boolean appendIfTrue) {
+        if (appendIfTrue) {
+            addCond(SqlKeywords.OR.toString(), String.format(subFormat, op.format(column)));
+            addParam(op);
+        }
+        return this;
+    }
+
+    public SqlCondition<T> or_ex(String column, Op op) {
+        return this.or_ex(column, op, true);
+    }
+
+    public SqlCondition<T> or_ex(String column, Op op, boolean appendIfTrue) {
+        if (isBlank(op.getParam())) {
+            return this;
+        }
+        return this.or(column, op, appendIfTrue);
+    }
+
+    public SqlCondition<T> or(SqlCondition<Object> sqlCondition) {
+        if (sqlCondition.builder.isEmpty()) {
+            return this;
+        }
+        addCond(SqlKeywords.OR.toString(), String.format(subFormat, sqlCondition.toSql()));
+        this.params.addAll(sqlCondition.params);
+        return this;
+    }
+
+
+    public SqlCondition<T> exists(SqlSelect sqlSelect) {
+        Objects.requireNonNull(sqlSelect, "sqlSelect cannot be null");
+        addCond("", SqlKeywords.EXISTS + String.format(subFormat, sqlSelect.toSql()));
+        this.params.addAll(Arrays.asList(sqlSelect.params()));
+        return this;
+    }
+
+    public SqlCondition<T> not_exists(SqlSelect sqlSelect) {
+        Objects.requireNonNull(sqlSelect, "sqlSelect cannot be null");
+        addCond("", SqlKeywords.NOT_EXISTS + String.format(subFormat, sqlSelect.toSql()));
+        this.params.addAll(Arrays.asList(sqlSelect.params()));
+        return this;
+    }
+
+    private void addParam(Op op) {
+        if (op.isNoneParam()) {
+            return;
+        }
+
+        Object param = op.getParam();
+        if (param instanceof Collection<?> c) {
+            this.params.addAll(c);
+            return;
+        }
+
+        this.params.add(param);
+    }
+
+    private boolean isBlank(Object value) {
+        if (value instanceof String s) {
+            return s.isBlank();
+        }
+        if (value instanceof Collection<?> c) {
+            return c.isEmpty();
+        }
+
+        return value == null || value.toString().isBlank();
+    }
+
+
+    private void addCond(String logicalOpType, String cond) {
+        if (this.builder.isEmpty()) {
+            logicalOpType = "";
+        }
+
+        this.builder
+            .append(logicalOpType)
+            .append(cond);
+    }
+
+    public List<Object> params() {
+        return this.params;
+    }
+
+    public String toSql() {
+        return this.builder.toString();
+    }
+
+    public boolean isBlank() {
+        return this.builder.isEmpty();
+    }
+
+    /**
+     * current condition end so back to host instance.
+     */
+    public T end() {
+        return this.host;
+    }
+}
