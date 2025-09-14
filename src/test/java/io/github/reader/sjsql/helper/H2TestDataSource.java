@@ -21,7 +21,14 @@ public class H2TestDataSource {
         druidDataSource.setMaxActive(20);
         druidDataSource.setValidationQuery("SELECT 1");
 
-        // 配置WallFilter
+        druidDataSource.setMaxWait(60000);
+        druidDataSource.setRemoveAbandoned(true);
+        druidDataSource.setRemoveAbandonedTimeout(180);
+        druidDataSource.setLogAbandoned(true);
+        druidDataSource.setTimeBetweenEvictionRunsMillis(60000);
+        druidDataSource.setMinEvictableIdleTimeMillis(300000);
+
+        // WallFilter
         try {
             druidDataSource.setFilters("stat,wall");
         } catch (Exception e) {
@@ -31,6 +38,10 @@ public class H2TestDataSource {
         dataSource = druidDataSource;
 
 
+    }
+
+    public static DataSource getDataSource() {
+        return dataSource;
     }
 
     public static Connection getConnection() throws SQLException {

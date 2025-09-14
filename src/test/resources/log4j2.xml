@@ -28,7 +28,7 @@
     </Logger>
 
     <!-- Log4jdbc日志记录器 -->
-    <Logger name="jdbc.sqlonly" level="INFO" additivity="false">
+    <Logger name="jdbc.sqlonly" level="OFF" additivity="false">
       <AppenderRef ref="Console"/>
       <AppenderRef ref="SqlFile"/>
     </Logger>

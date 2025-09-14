@@ -61,7 +61,7 @@ class SqlInsertTest extends DatabaseTest {
         assert_execute_update(sqlInsert);
 
         SqlSelect sqlSelect = SqlSelect.from("account").where("code", Op.eq("ENTITY001"));
-        Account account1 = jdbcClient.queryForObject(sqlSelect, Account.class);
+        Account account1 = jdbcClient.queryForObject(sqlSelect.toSql(), sqlSelect.params(), Account.class);
 
         assertEquals(account.getName(), account1.getName());
         assertEquals(account.getEmail(), account1.getEmail());
@@ -203,7 +203,7 @@ class SqlInsertTest extends DatabaseTest {
     }
 
     private int[] execute_batch_update(SqlInsert sqlInsert) throws SQLException {
-        return jdbcClient.executeBatch(sqlInsert.toSql(), sqlInsert.batchParams());
+        return jdbcClient.batchUpdate(sqlInsert.toSql(), sqlInsert.batchParams());
     }
 
     private void assert_execute_update(SqlInsert sqlInsert, int expectedRowsAffected) {

@@ -3,9 +3,6 @@ package io.github.reader.sjsql.helper;
 import com.alibaba.druid.pool.DruidDataSource;
 import javax.sql.DataSource;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
 public class Mysql8TestDataSource {
 
     private static DataSource dataSource;
@@ -23,7 +20,7 @@ public class Mysql8TestDataSource {
         druidDataSource.setMaxActive(20);
         druidDataSource.setValidationQuery("SELECT 1");
 
-        // 配置WallFilter
+        // WallFilter
         try {
             druidDataSource.setFilters("stat,wall");
         } catch (Exception e) {
@@ -33,7 +30,8 @@ public class Mysql8TestDataSource {
         dataSource = druidDataSource;
     }
 
-    public static Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
+    public static DataSource getDataSource() {
+        return dataSource;
     }
+
 }

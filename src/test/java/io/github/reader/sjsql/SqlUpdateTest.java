@@ -287,6 +287,6 @@ class SqlUpdateTest extends DatabaseTest {
     }
 
     private int[] execute_batch_update(SqlUpdate sqlUpdate) throws SQLException {
-        return jdbcClient.executeBatch(sqlUpdate.toSql(), sqlUpdate.batchParams());
+        return jdbcClient.batchUpdate(sqlUpdate.toSql(), sqlUpdate.batchParams());
     }
 }
