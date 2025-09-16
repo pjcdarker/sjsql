@@ -1,6 +1,7 @@
 package io.github.reader.sjsql.helper;
 
-import com.alibaba.druid.pool.DruidDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 
 public class Mysql8TestDataSource {
@@ -8,26 +9,22 @@ public class Mysql8TestDataSource {
     private static DataSource dataSource;
 
     static {
-        DruidDataSource druidDataSource = new DruidDataSource();
-        druidDataSource.setUrl(
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(
             "jdbc:log4jdbc:mysql://localhost:3306/solu?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true");
-        druidDataSource.setDriverClassName("net.sf.log4jdbc.DriverSpy");
-        // druidDataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        druidDataSource.setUsername("root");
-        druidDataSource.setPassword("123456");
-        druidDataSource.setInitialSize(5);
-        druidDataSource.setMinIdle(5);
-        druidDataSource.setMaxActive(20);
-        druidDataSource.setValidationQuery("SELECT 1");
+        config.setUsername("root");
+        config.setPassword("123456");
+        // don't set driver class "com.mysql.cj.jdbc.Driver", use log4jdbc instead or ignore
+        config.setDriverClassName("net.sf.log4jdbc.DriverSpy");
+        config.setConnectionTestQuery("SELECT 1");
+        config.addDataSourceProperty("initialPoolSize", "5");
+        config.addDataSourceProperty("minPoolSize", "5");
+        config.addDataSourceProperty("maxPoolSize", "20");
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
-        // WallFilter
-        try {
-            druidDataSource.setFilters("stat,wall");
-        } catch (Exception e) {
-            throw new RuntimeException("Druid数据源配置失败", e);
-        }
-
-        dataSource = druidDataSource;
+        dataSource = new HikariDataSource(config);
     }
 
     public static DataSource getDataSource() {

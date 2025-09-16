@@ -3,8 +3,9 @@ log4j = "2.25.1"
 slf4j = "2.0.17"
 junit = "5.13.4"
 h2 = "2.3.232"
-druid = "1.2.22"
+druid = "1.2.27"
 mysql-connector = "9.4.0"
+hikaricp = "7.0.2"
 
 [libraries]
 log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
@@ -19,6 +20,7 @@ junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform
 h2 = { group = "com.h2database", name = "h2", version.ref = "h2" }
 druid = { group = "com.alibaba", name = "druid", version.ref = "druid" }
 mysql-connector = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mysql-connector" }
+hikaricp = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikaricp" }
 log4jdbc = { group = "com.googlecode.log4jdbc", name = "log4jdbc", version = "1.2" }
 
 [bundles]

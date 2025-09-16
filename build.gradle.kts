@@ -17,7 +17,8 @@ dependencies {
 
     testImplementation(libs.bundles.log4j)
     testImplementation(libs.slf4j.api)
-    testImplementation(libs.druid)
+    // testImplementation(libs.druid)
+    testImplementation(libs.hikaricp)
     testImplementation(libs.h2)
     testImplementation(libs.mysql.connector)
     testImplementation(platform(libs.junit.bom))

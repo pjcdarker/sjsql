@@ -19,9 +19,9 @@ import java.util.Map;
 
 class DatabaseTest {
 
-    static final String T_ACCOUNT = "`account`";
-    static final String T_TENANT = "`tenant`";
-    static final String T_PAYMENT_ORDER = "`payment_order`";
+    static final String T_ACCOUNT = "account";
+    static final String T_TENANT = "tenant";
+    static final String T_PAYMENT_ORDER = "payment_order";
 
     static SimpleJdbcClient jdbcClient;
 
@@ -52,6 +52,7 @@ class DatabaseTest {
                             account_id INT, 
                             name VARCHAR(100),
                             enabled tinyint(1),
+                            balance DECIMAL(10, 2) DEFAULT '0.00',
                             create_time datetime
                             )
             """,
