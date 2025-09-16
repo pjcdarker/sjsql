@@ -116,13 +116,10 @@ public class SqlUpdate {
         for (int i = 0; i < valueSize; i++) {
             List<Object> rowParams = new ArrayList<>();
             for (Entry<String, List<Object>> entry : columnValues.entrySet()) {
-                rowParams.add(SqlEscape.escape(entry.getValue().get(i)));
+                rowParams.add(entry.getValue().get(i));
             }
 
-            List<Object> escapeParams = whereParams.get(i)
-                                                   .stream()
-                                                   .map(SqlEscape::escape)
-                                                   .toList();
+            List<Object> escapeParams = whereParams.get(i);
             rowParams.addAll(escapeParams);
             finalParams.add(rowParams);
         }

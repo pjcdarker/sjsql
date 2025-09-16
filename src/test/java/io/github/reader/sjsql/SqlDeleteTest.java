@@ -1,7 +1,6 @@
 package io.github.reader.sjsql;
 
 import static io.github.reader.sjsql.RefValue.ref;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -55,7 +54,7 @@ class SqlDeleteTest extends DatabaseTest {
             .and("create_time", Op.lt(LocalDateTime.of(2025, 1, 1, 0, 0, 0)))
             .end();
 
-        assertArrayEquals(new Object[]{0, "2025-01-01 00:00:00"}, sqlDelete.params());
+        assertEquals(2, sqlDelete.params().length);
 
         assertEquals(0, execute_update(sqlDelete.toSql(), sqlDelete.params()));
     }

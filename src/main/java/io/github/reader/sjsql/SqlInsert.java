@@ -95,7 +95,7 @@ public class SqlInsert {
         for (int i = 0; i < valueSize; i++) {
             List<Object> params = new ArrayList<>();
             for (Entry<String, List<Object>> entry : columnValues.entrySet()) {
-                params.add(SqlEscape.escape(entry.getValue().get(i)));
+                params.add(entry.getValue().get(i));
             }
             allParams.add(params);
         }
