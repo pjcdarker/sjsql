@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.pjcdarker"
-version = "0.2.0"
+version = "1.0.0"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public/")

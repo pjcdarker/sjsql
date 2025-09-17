@@ -4,7 +4,7 @@ simple java sql
 
 ## requirements
 
-- jdk21+
+- jdk21 or later
 
 ## maven
 
@@ -13,8 +13,128 @@ simple java sql
 <dependency>
     <groupId>io.github.pjcdarker</groupId>
     <artifactId>sjsql</artifactId>
-    <version>0.2.0</version>
+    <version>1.0.0</version>
 </dependency>
+
+```
+
+
+
+## resultType
+
+```java
+
+class Account {
+    Long id;
+    String name;
+    Tenant tenant;
+}
+
+class Tenant {
+    Long id;
+    String name;
+}
+
+
+```
+## Object Mapping
+
+```java
+
+SqlSelect sqlSelect = SqlSelect
+    .from("accounts") 
+    .select("id", "name", "email") 
+    .where("id", Op.eq(1));
+
+Account account = jdbcClient.queryForObject(sqlSelect.toSql(), sqlSelect.params(), Account.class);
+
+// OR
+
+Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), ResultType.of(Account.class));
+
+```
+
+## List Mapping
+
+```java
+
+SqlSelect sqlSelect = SqlSelect
+    .from("accounts") 
+    .select("id", "name", "email") 
+    .orderBy("id");
+
+List<Account> accounts = jdbcClient.queryForList(sqlSelect.toSql(), sqlSelect.params(), Account.class);
+
+```
+
+## Object Field Mapping
+
+```java
+
+SqlSelect sqlSelect = SqlSelect
+    .from("accounts", "a") 
+    .select("a.id", "a.name") 
+    .addColumn("b.id", "tenant.id") // tenant.id mapping account.tenant.id 
+    .addColumn("b.name", "tenant.name") // tenant.name mapping account.tenant.name 
+    .leftJoin("tenant b", "a.id", "b.account_id");
+
+Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), Account.class);
+// Result: account.getTenant().getId() and account.getTenant().getName() will be correctly set
+
+```
+
+## Configuring Alias to Object Field Mapping
+
+```java
+
+SqlSelect sqlSelect = SqlSelect
+    .from("accounts", "a") 
+    .select("a.id", "a.name") 
+    .addColumn("b.id", "b.id") 
+    .addColumn("b.name", "b.name") 
+    .leftJoin("tenant b", "a.id", "b.account_id");
+ResultType<Account> resultType = ResultType.of(Account.class).aliasObjectField("b", "tenant"); // Map alias "b" to "tenant" field
+Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), resultType);
+
+
+```
+
+## Multi-level Object Field Mapping
+
+```java
+
+SqlSelect sqlSelect = SqlSelect
+    .from("accounts", "a") 
+    .select("a.id", "a.name") 
+    .addColumn("b.id", "tenant.id") 
+    .addColumn("b.name", "tenant.name") 
+    .addColumn("c.id", "tenant.paymentOrder.id") 
+    .addColumn("c.trade_no", "tenant.paymentOrder.tradeNo") 
+    .leftJoin("tenant b", "a.id", "b.account_id") 
+    .leftJoin("payment_order c", "b.id", "c.tenant_id");
+
+Account account = jdbcClient.queryForObject(sqlSelect.toSql(), sqlSelect.params(), Account.class);
+
+// Results: 
+// account.getTenant().getId() 
+// account.getTenant().getName() 
+// account.getTenant().getPaymentOrder().getId() 
+// account.getTenant().getPaymentOrder().getTradeNo()
+
+```
+
+## ignore Unknown fields
+
+```java
+
+SqlSelect sqlSelect = SqlSelect
+    .from("accounts") 
+    .select("id", "name", "code AS unknown_field");
+
+ResultType<Account> resultType = ResultType.of(Account.class).ignoreUnknownField(true); // Ignore unknown fields
+Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), resultType);
+
+// unknown_field will not map to account
 
 ```
 
@@ -126,124 +246,6 @@ SqlSelect sqlSelect = SqlSelect
 // FROM accounts 
 // GROUP BY department 
 // HAVING count > ?;
-
-```
-
-## resultType
-
-```java
-
-class Account {
-    Long id;
-    String name;
-    Tenant tenant;
-}
-
-class Tenant {
-    Long id;
-    String name;
-}
-
-
-```
-## Object Mapping
-
-```java
-
-SqlSelect sqlSelect = SqlSelect
-    .from("accounts") 
-    .select("id", "name", "email") 
-    .where("id", Op.eq(1));
-
-Account account = jdbcClient.queryForObject(sqlSelect, Account.class);
-
-// OR
-
-Account account = jdbcClient.queryForObject(sqlSelect, ResultType.of(Account.class));
-
-```
-
-## List Mapping
-
-```java
-
-SqlSelect sqlSelect = SqlSelect
-    .from("accounts") 
-    .select("id", "name", "email") 
-    .orderBy("id");
-
-List<Account> accounts = jdbcClient.queryForList(sqlSelect, ResultType.forList(Account.class));
-
-```
-
-## Object Field Mapping
-
-```java
-
-SqlSelect sqlSelect = SqlSelect
-    .from("accounts", "a") 
-    .select("a.id", "a.name") 
-    .addColumn("b.id", "tenant.id") // tenant.id mapping account.tenant.id 
-    .addColumn("b.name", "tenant.name") // tenant.name mapping account.tenant.name 
-    .leftJoin("tenant b", "a.id", "b.account_id");
-
-Account account = jdbcClient.executeQuery(sqlSelect, ResultType.of(Account.class));
-// Result: account.getTenant().getId() and account.getTenant().getName() will be correctly set
-
-```
-
-## Configuring Alias to Object Field Mapping
-
-```java
-
-SqlSelect sqlSelect = SqlSelect
-    .from("accounts", "a") 
-    .select("a.id", "a.name") 
-    .addColumn("b.id", "b.id") 
-    .addColumn("b.name", "b.name") 
-    .leftJoin("tenant b", "a.id", "b.account_id");
-ResultType<Account> resultType = ResultType.of(Account.class).aliasObjectField("b", "tenant"); // Map alias "b" to "tenant" field
-Account account = jdbcClient.executeQuery(sqlSelect, resultType);
-
-
-```
-
-## Multi-level Object Field Mapping
-
-```java
-
-SqlSelect sqlSelect = SqlSelect
-    .from("accounts", "a") 
-    .select("a.id", "a.name") 
-    .addColumn("b.id", "tenant.id") 
-    .addColumn("b.name", "tenant.name") 
-    .addColumn("c.id", "tenant.paymentOrder.id") 
-    .addColumn("c.trade_no", "tenant.paymentOrder.tradeNo") 
-    .leftJoin("tenant b", "a.id", "b.account_id") 
-    .leftJoin("payment_order c", "b.id", "c.tenant_id");
-
-Account account = jdbcClient.executeQuery(sqlSelect, ResultType.of(Account.class));
-
-// Results: 
-// account.getTenant().getId() 
-// account.getTenant().getName() 
-// account.getTenant().getPaymentOrder().getId() 
-// account.getTenant().getPaymentOrder().getTradeNo()
-
-```
-
-## ignore Unknown fields
-
-```java
-
-SqlSelect sqlSelect = SqlSelect
-    .from("accounts") 
-    .select("id", "name", "code AS unknown_field");
-
-ResultType<Account> resultType = ResultType.of(Account.class).ignoreUnknownField(true); // Ignore unknown fields
-Account account = jdbcClient.executeQuery(sqlSelect, resultType);
-
-// unknown_field will not map to account
 
 ```
 
@@ -425,4 +427,6 @@ SqlDelete sqlDelete = SqlDelete.batch("accounts", List.of(account1, account2))
 ## [delete examples](./docs/delete.md)
 
 ## [resultType examples](./docs/result-type.md)
+
+## [JdbcClient](./docs/jdbcClient.md)
 
