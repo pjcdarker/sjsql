@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.reader.sjsql.SqlKeywords.Op;
 import io.github.reader.sjsql.helper.H2TestDataSource;
 import io.github.reader.sjsql.helper.Mysql8TestDataSource;
-import io.github.reader.sjsql.helper.SimpleJdbcClient;
+import io.github.reader.sjsql.jdbc.SimpleJdbcClient;
 import io.github.reader.sjsql.model.Account;
 import io.github.reader.sjsql.result.ResultType;
 import org.junit.jupiter.api.AfterAll;
@@ -17,13 +17,13 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-class DatabaseTest {
+public class DatabaseTest {
 
     static final String T_ACCOUNT = "account";
     static final String T_TENANT = "tenant";
     static final String T_PAYMENT_ORDER = "payment_order";
 
-    static SimpleJdbcClient jdbcClient;
+    protected static SimpleJdbcClient jdbcClient;
 
     @BeforeAll
     static void beforeAll() {
