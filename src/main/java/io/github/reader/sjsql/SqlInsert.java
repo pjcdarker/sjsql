@@ -1,10 +1,10 @@
 package io.github.reader.sjsql;
 
-import static io.github.reader.sjsql.result.ClassUtils.toSnakeCase;
+import static io.github.reader.sjsql.bean.ClassUtils.toSnakeCase;
 
-import io.github.reader.sjsql.result.ClassUtils;
+import io.github.reader.sjsql.bean.BeanProperty;
+import io.github.reader.sjsql.bean.ClassUtils;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -110,40 +110,37 @@ public class SqlInsert {
         if (this.dataset == null || this.columnValuesUpdated) {
             return;
         }
-        try {
-            Set<String> nullValuesColumns = new HashSet<>();
-            Set<String> nonNullValuesColumns = new HashSet<>();
-            for (Object object : this.dataset) {
-                if (object instanceof Map<?, ?> map) {
-                    updateFromMap(map, nonNullValuesColumns, nullValuesColumns);
-                } else {
-                    updateFromObject(object, nonNullValuesColumns, nullValuesColumns);
-                }
+        Set<String> nullValuesColumns = new HashSet<>();
+        Set<String> nonNullValuesColumns = new HashSet<>();
+        for (Object object : this.dataset) {
+            if (object instanceof Map<?, ?> map) {
+                updateFromMap(map, nonNullValuesColumns, nullValuesColumns);
+            } else {
+                updateFromObject(object, nonNullValuesColumns, nullValuesColumns);
             }
-
-            // remove non null values columns
-            nullValuesColumns.removeAll(nonNullValuesColumns);
-            for (String column : nullValuesColumns) {
-                this.columnValues.remove(column);
-            }
-
-            this.columnValuesUpdated = true;
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
         }
+
+        // remove non null values columns
+        nullValuesColumns.removeAll(nonNullValuesColumns);
+        for (String column : nullValuesColumns) {
+            this.columnValues.remove(column);
+        }
+
+        this.columnValuesUpdated = true;
     }
 
-    private void updateFromObject(Object object, Set<String> nonNullValuesColumns, Set<String> nullValuesColumns)
-        throws Throwable {
-        List<Field> fields = ClassUtils.getPersistentFields(object.getClass());
-        for (Field field : fields) {
-            String columnName = toSnakeCase(field.getName());
+    private void updateFromObject(Object entity, Set<String> nonNullValuesColumns, Set<String> nullValuesColumns) {
+        List<BeanProperty> beanProperties = ClassUtils.persistentBeanProperties(entity.getClass());
+        for (BeanProperty bp : beanProperties) {
+            String columnName = toSnakeCase(bp.getName());
             if (meetSizeFromValuesSet(columnName)) {
                 continue;
             }
-            Object fieldValue = ClassUtils.getFieldValue(object, field);
+
+            Object fieldValue = bp.read(entity);
             addColumnValues(columnName, fieldValue, nonNullValuesColumns, nullValuesColumns);
         }
+
     }
 
     private void updateFromMap(Map<?, ?> map, Set<String> nonNullValuesColumns, Set<String> nullValuesColumns) {

@@ -1,6 +1,7 @@
 package io.github.reader.sjsql;
 
-import io.github.reader.sjsql.result.ClassUtils;
+import io.github.reader.sjsql.bean.BeanProperty;
+import io.github.reader.sjsql.bean.ClassUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -16,16 +17,19 @@ public class RefValue {
 
     public static Object replace(Object instance, Object value) {
         if (value instanceof String valueString && valueString.startsWith(PREFIX)) {
-            String columnValue = valueString.substring(PREFIX.length());
+            String fieldName = valueString.substring(PREFIX.length());
             if (instance instanceof Map<?, ?> map) {
-                return map.get(columnValue);
+                return map.get(fieldName);
             }
 
-            try {
-                return ClassUtils.getFieldValue(instance, ClassUtils.toCamelCase(columnValue));
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+            BeanProperty beanProperty = ClassUtils.getBeanProperty(instance.getClass(),
+                ClassUtils.toCamelCase(fieldName));
+            if (beanProperty != null && beanProperty.hasReadMethod()) {
+                return beanProperty.read(instance);
             }
+            throw new IllegalArgumentException(
+                "The property[" + fieldName + "] getter method is not exist in "
+                    + instance.getClass().getCanonicalName());
         }
 
         return value;

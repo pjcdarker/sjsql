@@ -1,7 +1,9 @@
 package io.github.reader.sjsql.result;
 
 
-import java.lang.reflect.Field;
+import io.github.reader.sjsql.bean.BeanProperty;
+import io.github.reader.sjsql.bean.ClassUtils;
+
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
@@ -99,10 +101,10 @@ public class ResultType<T> {
                     continue;
                 }
 
-                Field field = getField(instance.getClass(), columnName);
-                if (field != null) {
-                    Object convertValue = TypeConverter.convert(value, field.getType());
-                    ClassUtils.setFieldValue(instance, field, convertValue);
+                final BeanProperty bp = getBeanProperty(instance.getClass(), columnName);
+                if (bp != null && bp.hasWriteMethod()) {
+                    Object convertValue = TypeConverter.convert(value, bp.getPropertyType());
+                    bp.write(instance, convertValue);
                 }
             }
 
@@ -122,42 +124,46 @@ public class ResultType<T> {
         final StringJoiner columnAliasJoiner = new StringJoiner(".");
         for (int i = 0; i < columnNames.length; i++) {
             String column = aliasObjectFieldMap.getOrDefault(columnNames[i], columnNames[i]);
-            Field field = getField(fieldType, column);
-            if (field == null) {
+            BeanProperty bp = getBeanProperty(fieldType, column);
+            if (bp == null) {
                 continue;
             }
 
             if (i == columnNames.length - 1) {
-                Object convertValue = TypeConverter.convert(value, field.getType());
-                ClassUtils.setFieldValue(lastFieldObjectInstance, field, convertValue);
+                if (bp.hasWriteMethod()) {
+                    Object convertValue = TypeConverter.convert(value, bp.getPropertyType());
+                    bp.write(lastFieldObjectInstance, convertValue);
+                }
                 continue;
             }
 
             columnAliasJoiner.add(column);
             String columnAlias = columnAliasJoiner.toString();
-            fieldType = field.getType();
+            fieldType = bp.getPropertyType();
             Object fieldObjectInstance = fieldObjectCache.get(columnAlias);
             if (fieldObjectInstance == null) {
                 fieldObjectInstance = fieldType.getDeclaredConstructor().newInstance();
                 fieldObjectCache.put(columnAlias, fieldObjectInstance);
 
-                ClassUtils.setFieldValue(lastFieldObjectInstance, field, fieldObjectInstance);
+                if (bp.hasWriteMethod()) {
+                    bp.write(lastFieldObjectInstance, fieldObjectInstance);
+                }
             }
 
             lastFieldObjectInstance = fieldObjectInstance;
         }
     }
 
-    private Field getField(Class<?> clazz, String columnName) throws Exception {
-        Field field = ClassUtils.getFieldByName(clazz, columnName);
-        if (field == null) {
+    private BeanProperty getBeanProperty(Class<?> clazz, String columnName) throws Exception {
+        BeanProperty bp = ClassUtils.getBeanProperty(clazz, columnName);
+        if (bp == null) {
             if (ignoreUnknownField) {
                 return null;
             }
 
             throw new NoSuchFieldException(clazz + " cannot found field: " + columnName);
         }
-        return field;
+        return bp;
     }
 
     public boolean isCollectionType() {
@@ -174,9 +180,9 @@ public class ResultType<T> {
         return this;
     }
 
-    private T newInstance() throws Exception {
+    private T newInstance() throws Throwable {
         Class<?> targetClass = (elementType != null) ? elementType : resultType;
-        return (T) targetClass.getDeclaredConstructor().newInstance();
+        return (T) ClassUtils.newInstance(targetClass);
     }
 
 }

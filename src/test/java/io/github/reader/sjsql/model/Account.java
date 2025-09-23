@@ -95,7 +95,12 @@ public class Account extends BaseEntity {
 
     public void setTestInfo(String email) {
         this.name = "Entity Update Test";
-        this.email = email ;
+        this.email = email;
         this.code = "ENTITY002";
     }
+
+    public static void setTestInfo2(String email) {
+
+    }
+
 }
