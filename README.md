@@ -13,7 +13,7 @@ simple java sql
 <dependency>
     <groupId>io.github.pjcdarker</groupId>
     <artifactId>sjsql</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 
 ```
