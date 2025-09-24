@@ -20,6 +20,18 @@ public final class ClassUtils {
     private static final Map<Class<?>, Map<String, BeanProperty>> bean_properties = new ConcurrentHashMap<>(
         32);
 
+    private static final Map<Class<?>, Class<?>> primitiveTypes = Map.of(
+        boolean.class, Boolean.class,
+        byte.class, Byte.class,
+        char.class, Character.class,
+        short.class, Short.class,
+        int.class, Integer.class,
+        long.class, Long.class,
+        float.class, Float.class,
+        double.class, Double.class
+    );
+
+
     private static final Lookup lookup = MethodHandles.lookup();
 
     private ClassUtils() {
@@ -121,28 +133,8 @@ public final class ClassUtils {
 
     public static boolean isAssignable(Class<?> targetType, Class<?> valueType) {
         if (targetType.isPrimitive()) {
-            if (targetType == boolean.class && valueType == Boolean.class) {
-                return true;
-            }
-            if (targetType == byte.class && valueType == Byte.class) {
-                return true;
-            }
-            if (targetType == char.class && valueType == Character.class) {
-                return true;
-            }
-            if (targetType == short.class && valueType == Short.class) {
-                return true;
-            }
-            if (targetType == int.class && valueType == Integer.class) {
-                return true;
-            }
-            if (targetType == long.class && valueType == Long.class) {
-                return true;
-            }
-            if (targetType == float.class && valueType == Float.class) {
-                return true;
-            }
-            if (targetType == double.class && valueType == Double.class) {
+            Class<?> aClass = primitiveTypes.get(targetType);
+            if (aClass != null && aClass == valueType) {
                 return true;
             }
         }
