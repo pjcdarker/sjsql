@@ -4,6 +4,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.math.BigDecimal;
@@ -18,7 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class ClassUtils {
 
     private static final Map<Class<?>, Map<String, BeanProperty>> bean_properties = new ConcurrentHashMap<>(
-        32);
+        64);
+
+    private static final Map<Class<?>, MethodHandle> class_constructors = new ConcurrentHashMap<>(
+        64);
 
     private static final Map<Class<?>, Class<?>> primitiveTypes = Map.of(
         boolean.class, Boolean.class,
@@ -38,8 +42,14 @@ public final class ClassUtils {
     }
 
     public static <T> T newInstance(Class<T> tClass) throws Throwable {
-        Lookup inLookup = lookup.in(tClass);
-        return (T) inLookup.unreflectConstructor(tClass.getDeclaredConstructor()).invoke();
+        return (T) class_constructors.computeIfAbsent(tClass, key -> {
+            Lookup inLookup = lookup.in(tClass);
+            try {
+                return inLookup.unreflectConstructor(tClass.getDeclaredConstructor());
+            } catch (IllegalAccessException | NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        }).invoke();
     }
 
     public static List<BeanProperty> persistentBeanProperties(Class<?> clazz) {

@@ -9,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,7 +23,6 @@ public class SimpleJdbcClient {
 
     public SimpleJdbcClient(DataSource dataSource) {
         this.dataSource = dataSource;
-
     }
 
     private Connection getConnection() {
@@ -120,7 +118,8 @@ public class SimpleJdbcClient {
         }
 
         return this.execute(sql, ps -> {
-            List<Integer> rowsAffected = new ArrayList<>();
+            int[] results = new int[batchParams.length];
+            int resultIndex = 0;
             for (int i = 0; i < batchParams.length; i++) {
                 Object[] params = batchParams[i];
                 for (int j = 0; j < params.length; j++) {
@@ -130,13 +129,13 @@ public class SimpleJdbcClient {
 
                 if ((i + 1) % batchSize == 0 || i == batchParams.length - 1) {
                     int[] batchResults = ps.executeBatch();
-                    for (int result : batchResults) {
-                        rowsAffected.add(result);
-                    }
+                    System.arraycopy(batchResults, 0, results, resultIndex, batchResults.length);
+                    resultIndex += batchResults.length;
+
                     ps.clearBatch();
                 }
             }
-            return rowsAffected.stream().mapToInt(Integer::intValue).toArray();
+            return results;
         });
     }
 
