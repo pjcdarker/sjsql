@@ -22,6 +22,10 @@ public class TypeConverter {
             return value;
         }
 
+        if (targetType.isEnum()) {
+            return toEnum(value, targetType);
+        }
+
         return switch (targetType.getName()) {
             case "java.lang.String" -> toString(value);
             case "java.lang.Integer", "int" -> toInteger(value);
@@ -271,5 +275,18 @@ public class TypeConverter {
             return clob;
         }
         return null;
+    }
+
+    private static Object toEnum(Object value, Class<?> enumType) {
+        if (value == null) {
+            return null;
+        }
+
+        if (enumType.isInstance(value)) {
+            return value;
+        }
+
+        String stringValue = value.toString();
+        return Enum.valueOf((Class<Enum>) enumType, stringValue);
     }
 }
