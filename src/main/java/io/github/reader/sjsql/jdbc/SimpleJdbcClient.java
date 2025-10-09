@@ -19,14 +19,14 @@ public class SimpleJdbcClient {
 
     private final DataSource dataSource;
 
-    private static final ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<Connection> connectionHolder = new ThreadLocal<>();
 
     public SimpleJdbcClient(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
     private Connection getConnection() {
-        final Connection connection = connectionThreadLocal.get();
+        final Connection connection = connectionHolder.get();
         if (connection != null) {
             return connection;
         }
@@ -216,12 +216,20 @@ public class SimpleJdbcClient {
     }
 
     public <T> T transaction(TransactionOperation<T> transactionOperation) {
-        Connection connection = null;
+        Connection connection = connectionHolder.get();
+        if (connection != null) {
+            try {
+                return transactionOperation.execute();
+            } catch (SQLException e) {
+                throw new JdbcDataAccessException(e);
+            }
+        }
+
         Boolean autoCommit = null;
         try {
             connection = getConnection();
             autoCommit = connection.getAutoCommit();
-            connectionThreadLocal.set(connection);
+            connectionHolder.set(connection);
 
             connection.setAutoCommit(false);
 
@@ -241,7 +249,7 @@ public class SimpleJdbcClient {
 
             throw new JdbcDataAccessException(e);
         } finally {
-            connectionThreadLocal.remove();
+            connectionHolder.remove();
             if (connection != null) {
                 try {
                     if (autoCommit != null) {
@@ -257,7 +265,7 @@ public class SimpleJdbcClient {
     }
 
     private void close(Connection connection) {
-        if (connection != null && connectionThreadLocal.get() == null) {
+        if (connection != null && connectionHolder.get() == null) {
             try {
                 connection.close();
             } catch (SQLException e) {

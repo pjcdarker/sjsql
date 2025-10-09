@@ -48,3 +48,29 @@ int affectedRows = jdbcClient.update(sql, params);
 jdbcClient.batchUpdate(sql, params, batchSize);
 
 ```
+
+## transaction
+
+```java
+
+jdbcClient.transaction(() -> {
+    jdbcClient.update(sql, params);
+})
+
+```
+
+## nest transaction 
+
+If a transaction already exists, the method joins it. If no transaction exists, a new one is created.
+
+```java
+
+jdbcClient.transaction(() -> {
+    jdbcClient.update(sql, params);
+    
+    jdbcClient.transaction(() -> {
+        jdbcClient.update(sql, params);
+    })
+})
+
+```

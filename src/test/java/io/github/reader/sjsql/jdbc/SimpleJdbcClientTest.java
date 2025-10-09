@@ -181,6 +181,82 @@ class SimpleJdbcClientTest extends DatabaseTest {
         assertEquals(new BigDecimal("0.00").doubleValue(), bBalance.doubleValue(), 0.01);
     }
 
+    @Test
+    void should_support_nested_transaction_commit() {
+        String result = jdbcClient.transaction(() -> {
+            jdbcClient.insert("INSERT INTO account (name, code) VALUES (?, ?)",
+                new Object[]{"outer-transaction-test", "outer"});
+
+            // nest
+            jdbcClient.transaction(() -> {
+                jdbcClient.update("INSERT INTO account (name, code) VALUES (?, ?)",
+                    new Object[]{"inner-transaction-test", "inner"});
+                return null;
+            });
+
+            return "SUCCESS";
+        });
+
+        assertEquals("SUCCESS", result);
+
+        Integer count = jdbcClient.queryForObject(
+            "SELECT COUNT(*) FROM account WHERE code IN ('outer', 'inner')",
+            new Object[]{},
+            Integer.class
+        );
+        assertEquals(2, count);
+    }
+
+    @Test
+    void should_rollback_when_inner_transaction_throws_exception() {
+        assertThrows(JdbcDataAccessException.class, () -> {
+            jdbcClient.transaction(() -> {
+                jdbcClient.update("INSERT INTO account (name, code) VALUES (?, ?)",
+                    new Object[]{"outer-rollback-test", "outer-ok"});
+
+                jdbcClient.transaction(() -> {
+                    jdbcClient.update("INSERT INTO account (name, code) VALUES (?, ?)",
+                        new Object[]{"inner-rollback-test", "inner-fail"});
+
+                    throw new RuntimeException("Inner transaction rollback");
+                });
+
+                return "FAILED";
+            });
+        });
+
+        Integer count = jdbcClient.queryForObject(
+            "SELECT COUNT(*) FROM account WHERE code IN ('outer-ok', 'inner-fail')",
+            new Object[]{},
+            Integer.class
+        );
+        assertEquals(0, count);
+    }
+
+    @Test
+    void should_rollback_when_outer_transaction_throws_exception() {
+        assertThrows(RuntimeException.class, () -> {
+            jdbcClient.transaction(() -> {
+                jdbcClient.update("INSERT INTO account (name, code) VALUES (?, ?)",
+                    new Object[]{"outer-rollback-test", "outer-all-fail"});
+
+                jdbcClient.transaction(() -> {
+                    jdbcClient.update("INSERT INTO account (name, code) VALUES (?, ?)",
+                        new Object[]{"inner-rollback-test", "inner-all-fail"});
+                    return null;
+                });
+
+                throw new RuntimeException("Outer transaction rollback");
+            });
+        });
+
+        Integer count = jdbcClient.queryForObject(
+            "SELECT COUNT(*) FROM account WHERE code IN ('outer-all-fail', 'inner-all-fail')",
+            new Object[]{},
+            Integer.class
+        );
+        assertEquals(0, count);
+    }
 
     @Test
     void should_return_generated_keys_when_insert() {
