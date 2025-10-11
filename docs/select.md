@@ -25,14 +25,15 @@ SqlSelect sqlSelect = SqlSelect.from("accounts")
 ```java
 
 Account account = new Account();
-boolean isAdmin = account.isAdmin(); // false
+boolean isAdmin = account.isAdmin();
 
 SqlSelect sqlSelect = SqlSelect.from("accounts")
                                .addColumn("id")
                                .addColumn("name", "account_name", true)
                                .addColumn("tenant_id", "tenantId", isAdmin);
 
-// SELECT id,name AS account_name FROM accounts;
+// isAdmin=false output: SELECT id,name AS account_name FROM accounts;
+// isAdmin=true  output: SELECT id,name,tenant_id AS account_name FROM accounts;
 
 ```
 
@@ -81,7 +82,8 @@ SqlSelect sqlSelect = SqlSelect
     .and_ex("phone", Op.neq("aaa"), isAdmin)
     .end();
 
-// SELECT * FROM accounts WHERE enabled = ? AND create_time > ?;
+// isAdmin=false output: SELECT * FROM accounts WHERE tenant_id = ? AND create_time > ?;
+// isAdmin=true  output: SELECT * FROM accounts WHERE create_time > ?;
 
 ```
 
