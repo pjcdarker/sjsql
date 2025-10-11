@@ -22,7 +22,7 @@ public class ResultType<T> {
     private final Class<T> resultType;
     // list element type
     private Class<?> elementType;
-    private final Map<String, String> aliasObjectFieldMap = new HashMap<>();
+    private final Map<String, String> typeAliasMap = new HashMap<>(32);
     private boolean ignoreUnknownField;
 
     private ResultType(Class<T> resultType) {
@@ -46,12 +46,12 @@ public class ResultType<T> {
         return (ResultType<List<Map<String, Object>>>) new ResultType<>((Class) List.class, Map.class);
     }
 
-    public T mapping(ResultSet rs) throws Throwable {
-        final List<T> results = mappingList(rs);
+    public T extractResult(ResultSet rs) throws Throwable {
+        final List<T> results = extractResultForList(rs);
         return results.isEmpty() ? null : results.getFirst();
     }
 
-    public List<T> mappingList(ResultSet rs) throws Throwable {
+    public List<T> extractResultForList(ResultSet rs) throws Throwable {
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -65,10 +65,10 @@ public class ResultType<T> {
             rows.add(row);
         }
 
-        return processRows(rows);
+        return mapping(rows);
     }
 
-    private List<T> processRows(List<Map<String, Object>> rows) throws Throwable {
+    private List<T> mapping(List<Map<String, Object>> rows) throws Throwable {
         List<T> results = new ArrayList<>();
 
         // simple type
@@ -123,7 +123,7 @@ public class ResultType<T> {
 
         final StringJoiner columnAliasJoiner = new StringJoiner(".");
         for (int i = 0; i < columnNames.length; i++) {
-            String column = aliasObjectFieldMap.getOrDefault(columnNames[i], columnNames[i]);
+            String column = typeAliasMap.getOrDefault(columnNames[i], columnNames[i]);
             BeanProperty bp = getBeanProperty(fieldType, column);
             if (bp == null) {
                 continue;
@@ -175,8 +175,8 @@ public class ResultType<T> {
         return this;
     }
 
-    public ResultType<T> aliasObjectField(String aliasPrefix, String fieldName) {
-        aliasObjectFieldMap.put(aliasPrefix, fieldName);
+    public ResultType<T> typeAliasMapping(String alias, String field) {
+        typeAliasMap.put(alias, field);
         return this;
     }
 

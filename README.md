@@ -93,7 +93,7 @@ SqlSelect sqlSelect = SqlSelect
     .addColumn("b.id", "b.id") 
     .addColumn("b.name", "b.name") 
     .leftJoin("tenant b", "a.id", "b.account_id");
-ResultType<Account> resultType = ResultType.of(Account.class).aliasObjectField("b", "tenant"); // Map alias "b" to "tenant" field
+ResultType<Account> resultType = ResultType.of(Account.class).typeAliasMapping("b", "tenant"); // Map alias "b" to "tenant" field
 Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), resultType);
 
 

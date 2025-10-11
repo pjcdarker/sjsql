@@ -117,7 +117,7 @@ class ResultTypeTest extends DatabaseTest {
             .where("a.id", Op.eq(1));
 
         ResultType<Account> resultType = ResultType.of(Account.class)
-                                                   .aliasObjectField("b", "tenant");
+                                                   .typeAliasMapping("b", "tenant");
 
         final Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), resultType);
 

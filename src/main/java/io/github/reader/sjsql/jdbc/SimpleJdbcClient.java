@@ -54,9 +54,9 @@ public class SimpleJdbcClient {
             this.setParameters(ps, params);
             try (ResultSet rs = ps.executeQuery()) {
                 if (resultType.isCollectionType()) {
-                    return (T) resultType.mappingList(rs);
+                    return (T) resultType.extractResultForList(rs);
                 }
-                return resultType.mapping(rs);
+                return resultType.extractResult(rs);
             } catch (Throwable e) {
                 throw new JdbcDataAccessException(e);
             }
