@@ -56,8 +56,7 @@ class ResultTypeTest extends DatabaseTest {
             .column("a.create_time", "createAt")
             .where("id", Op.eq(1));
 
-        ResultType<Account> resultType = ResultType.of(Account.class)
-                                                   .ignoreUnknownField(true);
+        ResultType<Account> resultType = ResultType.of(Account.class);
 
         Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), resultType);
 
@@ -75,7 +74,7 @@ class ResultTypeTest extends DatabaseTest {
             .column("a.name", "`a.name`")
             .where("id", Op.eq(1));
 
-        ResultType<Account> resultType = ResultType.of(Account.class);
+        ResultType<Account> resultType = ResultType.of(Account.class).disableIgnoreUnknownField();
 
         assertThrows(Exception.class, () -> {
             jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), resultType);

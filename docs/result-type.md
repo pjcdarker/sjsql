@@ -104,7 +104,7 @@ Account account = jdbcClient.executeQuery(sqlSelect, ResultType.of(Account.class
 
 ```
 
-## ignore Unknown fields
+## diable ignore Unknown fields
 
 ```java
 
@@ -112,9 +112,9 @@ SqlSelect sqlSelect = SqlSelect
     .from("accounts") 
     .select("id", "name", "code AS unknown_field");
 
-ResultType<Account> resultType = ResultType.of(Account.class).ignoreUnknownField(true); // Ignore unknown fields
+ResultType<Account> resultType = ResultType.of(Account.class).disableIgnoreUnknownField();
 Account account = jdbcClient.executeQuery(sqlSelect, resultType);
 
-// unknown_field will not map to account
+// throw NoSuchFieldException
 
 ```

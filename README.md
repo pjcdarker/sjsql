@@ -131,7 +131,7 @@ SqlSelect sqlSelect = SqlSelect
     .from("accounts") 
     .select("id", "name", "code AS unknown_field");
 
-ResultType<Account> resultType = ResultType.of(Account.class).ignoreUnknownField(true); // Ignore unknown fields
+ResultType<Account> resultType = ResultType.of(Account.class); // Ignore unknown fields (default)
 Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), resultType);
 
 // unknown_field will not map to account

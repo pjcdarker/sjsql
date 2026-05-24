@@ -23,7 +23,7 @@ public class ResultType<T> {
     // list element type
     private Class<?> elementType;
     private final Map<String, String> typeAliasMap = new HashMap<>(32);
-    private boolean ignoreUnknownField;
+    private boolean ignoreUnknownField = true;
 
     private ResultType(Class<T> resultType) {
         this.resultType = resultType;
@@ -170,8 +170,8 @@ public class ResultType<T> {
         return Collection.class.isAssignableFrom(resultType);
     }
 
-    public ResultType<T> ignoreUnknownField(boolean enabled) {
-        this.ignoreUnknownField = enabled;
+    public ResultType<T> disableIgnoreUnknownField() {
+        this.ignoreUnknownField = false;
         return this;
     }
 
