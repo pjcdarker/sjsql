@@ -10,6 +10,7 @@ import java.util.Objects;
 
 public class SqlSelect {
 
+    private static final String COMMA = ",";
     private final String table;
     private final List<String> columns;
     private final List<String> summaryColumns;
@@ -200,10 +201,10 @@ public class SqlSelect {
         }
 
         if (!this.groupByBuilder.isEmpty()) {
-            this.groupByBuilder.append(",");
+            this.groupByBuilder.append(COMMA);
         }
 
-        this.groupByBuilder.append(String.join(",", cols));
+        this.groupByBuilder.append(String.join(COMMA, cols));
         return this;
     }
 
@@ -213,7 +214,7 @@ public class SqlSelect {
             return this;
         }
 
-        this.groupByBuilder.append(String.join(",", cols));
+        this.groupByBuilder.append(String.join(COMMA, cols));
         return this;
     }
 
@@ -232,12 +233,12 @@ public class SqlSelect {
     }
 
     public SqlSelect orderBy(String column, boolean ascending) {
-        if (column == null || column.isEmpty()) {
+        if (column == null || column.isBlank()) {
             return this;
         }
 
         if (!this.orderByBuilder.isEmpty()) {
-            this.orderByBuilder.append(",");
+            this.orderByBuilder.append(COMMA);
         }
 
         this.orderByBuilder.append(column);
@@ -262,13 +263,13 @@ public class SqlSelect {
     }
 
     public SqlSelect limit(int offset, int limit) {
-        this.limit = offset + ", " + limit;
+        this.limit = offset + COMMA + " " + limit;
         return this;
     }
 
     public String toSql() {
         List<String> finalColumns = allColumns();
-        String columnsSql = finalColumns.isEmpty() ? "*" : String.join(",", finalColumns);
+        String columnsSql = finalColumns.isEmpty() ? "*" : String.join(COMMA, finalColumns);
 
         StringBuilder result = new StringBuilder(300 + columnsSql.length());
         result.append(selectFromTableSql(this.table, columnsSql));
@@ -309,7 +310,7 @@ public class SqlSelect {
         }
 
         if (this.having.isBlank()) {
-            String summaryColumnsSql = String.join(",", this.summaryColumns);
+            String summaryColumnsSql = String.join(COMMA, this.summaryColumns);
             return selectFromTableSql(this.table, summaryColumnsSql)
                 + this.joinBuilder
                 + whereSql()
@@ -325,13 +326,13 @@ public class SqlSelect {
                 "In aggregated query without GROUP BY, The having statement has to use with group by statement");
         }
 
-        final String sql = selectFromTableSql(this.table, String.join(",", this.summaryColumns))
+        final String sql = selectFromTableSql(this.table, String.join(COMMA, this.summaryColumns))
             + this.joinBuilder
             + whereSql()
             + groupBySql()
             + havingSql();
 
-        return SqlKeywords.SELECT + String.join(",", finalSummaryColumns)
+        return SqlKeywords.SELECT + String.join(COMMA, finalSummaryColumns)
             + SqlKeywords.FROM + "(" + sql + ") t0"
             + SqlKeywords.LIMIT + " 1 ";
     }
@@ -348,7 +349,7 @@ public class SqlSelect {
 
     public String selectSql() {
         List<String> finalColumns = allColumns();
-        String columnsSql = finalColumns.isEmpty() ? "*" : String.join(",", finalColumns);
+        String columnsSql = finalColumns.isEmpty() ? "*" : String.join(COMMA, finalColumns);
         return SqlKeywords.SELECT + columnsSql;
     }
 
