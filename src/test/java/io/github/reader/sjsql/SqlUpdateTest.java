@@ -108,7 +108,7 @@ class SqlUpdateTest extends DatabaseTest {
         SqlUpdate update = SqlUpdate.table("account")
                                     .set("name", "No Where Clause Update")
                                     .set("email", "nowhere@test.com")
-                                    .agree_without_where_clause(true);
+                                    .noWhereClause();
 
         assertArrayEquals(new Object[]{"No Where Clause Update", "nowhere@test.com"}, update.params());
         assert_execute_update(update, 4);

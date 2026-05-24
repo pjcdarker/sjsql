@@ -62,7 +62,7 @@ class SqlDeleteTest extends DatabaseTest {
     @Test
     void should_generate_delete_all_sql() {
         SqlDelete sqlDelete = SqlDelete.from(T_ACCOUNT)
-                                       .agree_without_where_clause(true);
+                                       .noWhereClause();
 
         int result = execute_update(sqlDelete.toSql(), sqlDelete.params());
         assertTrue(result >= 1);

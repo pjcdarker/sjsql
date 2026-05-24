@@ -15,7 +15,7 @@ public class SqlUpdate {
 
     private final String table;
     private final Map<String, List<Object>> columnValues;
-    private boolean agree_without_where_clause = false;
+    private boolean noWhereClause = false;
     private boolean refValueReplaced = false;
     private List<?> dataset;
 
@@ -77,7 +77,7 @@ public class SqlUpdate {
     }
 
     public String toSql() {
-        if (this.where.isBlank() && !this.agree_without_where_clause) {
+        if (this.where.isBlank() && !this.noWhereClause) {
             throw new IllegalStateException("[WARN] The update statement is without where clause");
         }
 
@@ -130,8 +130,8 @@ public class SqlUpdate {
                           .toArray(Object[][]::new);
     }
 
-    public SqlUpdate agree_without_where_clause(boolean agree) {
-        this.agree_without_where_clause = agree;
+    public SqlUpdate noWhereClause() {
+        this.noWhereClause = true;
         return this;
     }
 

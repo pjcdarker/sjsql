@@ -9,7 +9,7 @@ import java.util.Objects;
 public class SqlDelete {
 
     private final String table;
-    private boolean agree_without_where_clause = false;
+    private boolean noWhereClause = false;
     private List<?> dataset;
 
     public final SqlCondition<SqlDelete> where;
@@ -40,13 +40,13 @@ public class SqlDelete {
         return this;
     }
 
-    public SqlDelete agree_without_where_clause(boolean agree) {
-        this.agree_without_where_clause = agree;
+    public SqlDelete noWhereClause() {
+        this.noWhereClause = true;
         return this;
     }
 
     public String toSql() {
-        if (this.where.isBlank() && !this.agree_without_where_clause) {
+        if (this.where.isBlank() && !this.noWhereClause) {
             throw new IllegalStateException("[WARN] The delete statement is without where clause");
         }
         StringBuilder sql = new StringBuilder(80 + this.where.params().toString().length());

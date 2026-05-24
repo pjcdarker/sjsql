@@ -402,7 +402,7 @@ SqlDelete.from("accounts").where.and("id",1).end();
 ```java
 
 SqlDelete sqlDelete = SqlDelete.from("accounts")
-                               .agree_without_where_clause(true);
+                               .noWhereClause();
 
 // delete from accounts;
 
