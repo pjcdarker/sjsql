@@ -287,6 +287,11 @@ public class TypeConverter {
         }
 
         String stringValue = value.toString();
-        return Enum.valueOf((Class<Enum>) enumType, stringValue);
+        try {
+            return Enum.valueOf((Class<Enum>) enumType, stringValue);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException(
+                "Cannot convert value '" + stringValue + "' to enum type " + enumType.getName(), ex);
+        }
     }
 }

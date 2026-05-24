@@ -74,7 +74,7 @@ public class BeanProperty {
     }
 
 
-    static class BeanPropertyInvocationException extends RuntimeException {
+    public static class BeanPropertyInvocationException extends RuntimeException {
 
         public BeanPropertyInvocationException(String msg, Throwable e) {
             super(msg, e);

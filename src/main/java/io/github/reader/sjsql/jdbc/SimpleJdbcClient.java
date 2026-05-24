@@ -14,12 +14,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 public class SimpleJdbcClient {
 
     private final DataSource dataSource;
 
     private static final ThreadLocal<Connection> connectionHolder = new ThreadLocal<>();
+
+    private static final Logger LOG = Logger.getLogger(SimpleJdbcClient.class.getName());
 
     public SimpleJdbcClient(DataSource dataSource) {
         this.dataSource = dataSource;
@@ -237,13 +240,13 @@ public class SimpleJdbcClient {
             connection.commit();
 
             return result;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             Optional.ofNullable(connection)
                     .ifPresent(con -> {
                         try {
                             con.rollback();
                         } catch (SQLException rollbackEx) {
-                            throw new JdbcDataAccessException(rollbackEx);
+                            e.addSuppressed(rollbackEx);
                         }
                     });
 
@@ -258,7 +261,7 @@ public class SimpleJdbcClient {
 
                     connection.close();
                 } catch (SQLException e) {
-                    // Ignore
+                    LOG.warning("Failed to restore autoCommit: " + e.getMessage());
                 }
             }
         }
@@ -269,7 +272,7 @@ public class SimpleJdbcClient {
             try {
                 connection.close();
             } catch (SQLException e) {
-                // Ignore
+                LOG.warning("Failed to close connection: " + e.getMessage());
             }
         }
     }

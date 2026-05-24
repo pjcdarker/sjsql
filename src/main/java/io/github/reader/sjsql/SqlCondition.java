@@ -89,7 +89,7 @@ public class SqlCondition<T> {
         return this.or(column, op, appendIfTrue);
     }
 
-    public SqlCondition<T> or(SqlCondition<Object> sqlCondition) {
+    public SqlCondition<T> or(SqlCondition<?> sqlCondition) {
         if (sqlCondition.builder.isEmpty()) {
             return this;
         }

@@ -142,7 +142,7 @@ public class ResultType<T> {
             fieldType = bp.getPropertyType();
             Object fieldObjectInstance = fieldObjectCache.get(columnAlias);
             if (fieldObjectInstance == null) {
-                fieldObjectInstance = fieldType.getDeclaredConstructor().newInstance();
+                fieldObjectInstance = ClassUtils.newInstance(fieldType);
                 fieldObjectCache.put(columnAlias, fieldObjectInstance);
 
                 if (bp.hasWriteMethod()) {
