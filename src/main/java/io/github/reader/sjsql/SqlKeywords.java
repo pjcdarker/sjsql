@@ -34,14 +34,6 @@ public enum SqlKeywords {
 
     AND(" AND "),
     OR(" OR "),
-    IS_NULL(" IS NULL "),
-    IS_NOT_NULL(" IS NOT NULL "),
-    IN(" IN "),
-    NOT_IN(" NOT IN "),
-    LIKE(" LIKE "),
-    BETWEEN(" BETWEEN "),
-    EXISTS("EXISTS "),
-    NOT_EXISTS("NOT EXISTS "),
     ;
 
     private final String format;

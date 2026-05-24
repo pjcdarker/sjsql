@@ -483,7 +483,7 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "id,name"
                 + SqlKeywords.FROM + T_ACCOUNT
                 + SqlKeywords.WHERE + "email IS NULL"
-                + SqlKeywords.AND + "name" + SqlKeywords.LIKE + "?",
+                + SqlKeywords.AND + "name LIKE ?",
             sqlSelect.toSql());
         assertArrayEquals(new Object[]{"test%"}, sqlSelect.params());
 
@@ -526,7 +526,7 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "id,name"
                 + SqlKeywords.FROM + T_ACCOUNT
                 + SqlKeywords.WHERE + "(id" + " IN " + "(?,?,?,?)"
-                + SqlKeywords.AND + "name" + SqlKeywords.LIKE + "?)"
+                + SqlKeywords.AND + "name" + " LIKE " + "?)"
                 + SqlKeywords.AND + "id>?",
             sqlSelect.toSql());
 
@@ -546,7 +546,7 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "*"
                 + SqlKeywords.FROM + T_ACCOUNT
                 + SqlKeywords.WHERE + "id=?"
-                + SqlKeywords.AND + "(name=?" + SqlKeywords.OR + "(name" + SqlKeywords.LIKE + "?))",
+                + SqlKeywords.AND + "(name=?" + SqlKeywords.OR + "(name" + " LIKE " + "?))",
             sqlSelect.toSql());
 
         assert_run_sql(sqlSelect);
@@ -567,7 +567,7 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "id,name"
                 + SqlKeywords.FROM + T_ACCOUNT
                 + SqlKeywords.WHERE + "id=?"
-                + SqlKeywords.OR + "(name" + SqlKeywords.LIKE + "?" + SqlKeywords.AND + "name=?)",
+                + SqlKeywords.OR + "(name" + " LIKE " + "?" + SqlKeywords.AND + "name=?)",
             sqlSelect.toSql());
 
         assert_run_sql(sqlSelect);
@@ -589,7 +589,7 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "id,name"
                 + SqlKeywords.FROM + T_ACCOUNT
                 + SqlKeywords.WHERE + "id=?"
-                + SqlKeywords.OR + "(name" + SqlKeywords.LIKE + "?)",
+                + SqlKeywords.OR + "(name" + " LIKE " + "?)",
             sqlSelect.toSql());
 
         assert_run_sql(sqlSelect);
@@ -626,7 +626,7 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "id,name"
                 + SqlKeywords.FROM + T_ACCOUNT
                 + SqlKeywords.WHERE + "id=?"
-                + SqlKeywords.AND + "name" + SqlKeywords.LIKE + "?",
+                + SqlKeywords.AND + "name" + " LIKE " + "?",
             sqlSelect.toSql());
 
         assert_run_sql(sqlSelect);
@@ -644,8 +644,8 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "id,name"
                 + SqlKeywords.FROM + T_ACCOUNT
                 + SqlKeywords.WHERE + "id=?"
-                + SqlKeywords.AND + "name" + SqlKeywords.LIKE + "?"
-                + SqlKeywords.OR + "(code" + SqlKeywords.LIKE + "?)",
+                + SqlKeywords.AND + "name" + " LIKE " + "?"
+                + SqlKeywords.OR + "(code" + " LIKE " + "?)",
             sqlSelect.toSql());
 
         assert_run_sql(sqlSelect);
@@ -663,8 +663,8 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "id,name"
                 + SqlKeywords.FROM + T_ACCOUNT
                 + SqlKeywords.WHERE + "id=?"
-                + SqlKeywords.AND + "name" + SqlKeywords.LIKE + "?"
-                + SqlKeywords.OR + "(code" + SqlKeywords.LIKE + "?)",
+                + SqlKeywords.AND + "name" + " LIKE " + "?"
+                + SqlKeywords.OR + "(code" + " LIKE " + "?)",
             sqlSelect.toSql());
 
         assert_run_sql(sqlSelect);
@@ -681,7 +681,7 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "id,name"
                 + SqlKeywords.FROM + T_ACCOUNT
                 + SqlKeywords.WHERE + "id" + " IN " + "(?,?,?,?)"
-                + SqlKeywords.AND + "name" + SqlKeywords.LIKE + "?",
+                + SqlKeywords.AND + "name" + " LIKE " + "?",
             sqlSelect.toSql());
 
         assert_run_sql(sqlSelect);
@@ -699,7 +699,7 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "id,name"
                 + SqlKeywords.FROM + T_ACCOUNT
                 + SqlKeywords.WHERE + "code" + " IN " + "(?,?,?,?)"
-                + SqlKeywords.AND + "name" + SqlKeywords.LIKE + "?",
+                + SqlKeywords.AND + "name" + " LIKE " + "?",
             sqlSelect.toSql());
         assertArrayEquals(new Object[]{"1", "2", "3", "4", "t%"}, sqlSelect.params());
         assert_run_sql(sqlSelect);
@@ -722,7 +722,7 @@ class SqlSelectTest extends DatabaseTest {
         assertEquals(SqlKeywords.SELECT + "id,count(*) cnt"
                 + SqlKeywords.FROM + T_ACCOUNT
                 + SqlKeywords.WHERE + "id" + " NOT IN " + "(?,?,?,?)"
-                + SqlKeywords.AND + "name" + SqlKeywords.LIKE + "?"
+                + SqlKeywords.AND + "name" + " LIKE " + "?"
                 + SqlKeywords.GROUP_BY + "id"
                 + SqlKeywords.HAVING + "id>?"
                 + SqlKeywords.LIMIT + "0, 10",
