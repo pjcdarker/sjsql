@@ -56,8 +56,7 @@ public class SqlDelete {
             throw new IllegalStateException("[WARN] The delete statement is without where clause");
         }
         StringBuilder sql = new StringBuilder(80 + this.where.params().toString().length());
-        sql.append(SqlKeywords.DELETE)
-           .append(SqlKeywords.FROM)
+        sql.append(SqlKeywords.DELETE_FROM)
            .append(table);
 
         if (!where.isBlank()) {

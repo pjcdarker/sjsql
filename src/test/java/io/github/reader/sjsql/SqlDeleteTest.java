@@ -23,7 +23,7 @@ class SqlDeleteTest extends DatabaseTest {
         SqlDelete sqlDelete = SqlDelete.from("account")
                                        .where("id", Op.eq(1))
                                        .appendExtSql("ORDER BY id LIMIT 1");
-        assertEquals("DELETE  FROM account WHERE id=? ORDER BY id LIMIT 1;", sqlDelete.toSql());
+        assertEquals("DELETE FROM account WHERE id=? ORDER BY id LIMIT 1;", sqlDelete.toSql());
     }
 
     @Test

@@ -30,7 +30,7 @@ public enum SqlKeywords {
     VALUES(" VALUES "),
     UPDATE("UPDATE "),
     SET(" SET "),
-    DELETE("DELETE "),
+    DELETE_FROM("DELETE FROM "),
 
     AND(" AND "),
     OR(" OR "),
