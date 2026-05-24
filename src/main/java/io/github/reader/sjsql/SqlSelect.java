@@ -13,7 +13,7 @@ public class SqlSelect {
     private static final String COMMA = ",";
     private final String table;
     private final List<String> columns;
-    private final List<String> summaryColumns;
+    private final List<String> aggregateColumns;
     private final StringBuilder joinBuilder;
     private final List<UnionTable> unionTables;
     private final List<Object> joinParams;
@@ -27,7 +27,7 @@ public class SqlSelect {
     private SqlSelect(String table) {
         this.table = table;
         this.columns = new ArrayList<>();
-        this.summaryColumns = new ArrayList<>();
+        this.aggregateColumns = new ArrayList<>();
         this.joinBuilder = new StringBuilder(100);
         this.unionTables = new ArrayList<>();
         this.joinParams = new ArrayList<>();
@@ -67,11 +67,11 @@ public class SqlSelect {
         return select(cols);
     }
 
-    public SqlSelect addColumn(String col) {
-        return this.addColumn(col, true);
+    public SqlSelect column(String col) {
+        return this.column(col, true);
     }
 
-    public SqlSelect addColumn(String col, boolean appendIfTrue) {
+    public SqlSelect column(String col, boolean appendIfTrue) {
         if (appendIfTrue) {
             this.columns.add(col);
         }
@@ -79,22 +79,22 @@ public class SqlSelect {
         return this;
     }
 
-    public SqlSelect addColumn(String col, String alias) {
-        return this.addColumn(col, alias, true);
+    public SqlSelect column(String col, String alias) {
+        return this.column(col, alias, true);
     }
 
-    public SqlSelect addColumn(String col, String alias, boolean appendIfTrue) {
-        return this.addColumn(col + columnAlias(alias), appendIfTrue);
+    public SqlSelect column(String col, String alias, boolean appendIfTrue) {
+        return this.column(col + columnAlias(alias), appendIfTrue);
     }
 
 
-    public SqlSelect addSummaryColumn(String col, String alias) {
-        return this.addSummaryColumn(col, alias, true);
+    public SqlSelect aggregateColumn(String col, String alias) {
+        return this.aggregateColumn(col, alias, true);
     }
 
-    public SqlSelect addSummaryColumn(String col, String alias, boolean appendIfTrue) {
+    public SqlSelect aggregateColumn(String col, String alias, boolean appendIfTrue) {
         if (appendIfTrue) {
-            this.summaryColumns.add(col + columnAlias(alias));
+            this.aggregateColumns.add(col + columnAlias(alias));
         }
 
         return this;
@@ -300,25 +300,27 @@ public class SqlSelect {
         return params.toArray();
     }
 
-    public String summarySql() {
-        return this.summarySql(Collections.emptyList());
+    /**
+     * aggregate total.
+     */
+    public String aggregateSql() {
+        return this.aggregateSql(Collections.emptyList());
     }
 
-    public String summarySql(List<String> finalSummaryColumns) {
-        if (this.summaryColumns.isEmpty()) {
-            throw new IllegalArgumentException("[sqlSelect.summaryColumns] is empty");
+    public String aggregateSql(List<String> finalAggregateColumns) {
+        if (this.aggregateColumns.isEmpty()) {
+            throw new IllegalArgumentException("[sqlSelect.aggregateColumns] is empty");
         }
 
         if (this.having.isBlank()) {
-            String summaryColumnsSql = String.join(COMMA, this.summaryColumns);
-            return selectFromTableSql(this.table, summaryColumnsSql)
+            return selectFromTableSql(this.table, String.join(COMMA, this.aggregateColumns))
                 + this.joinBuilder
                 + whereSql()
                 + SqlKeywords.LIMIT + " 1 ";
         }
 
-        if (finalSummaryColumns.isEmpty()) {
-            throw new IllegalArgumentException("finalSummaryColumns is empty");
+        if (finalAggregateColumns.isEmpty()) {
+            throw new IllegalArgumentException("finalAggregateColumns is empty");
         }
 
         if (this.groupByBuilder.isEmpty()) {
@@ -326,13 +328,13 @@ public class SqlSelect {
                 "In aggregated query without GROUP BY, The having statement has to use with group by statement");
         }
 
-        final String sql = selectFromTableSql(this.table, String.join(COMMA, this.summaryColumns))
+        final String sql = selectFromTableSql(this.table, String.join(COMMA, this.aggregateColumns))
             + this.joinBuilder
             + whereSql()
             + groupBySql()
             + havingSql();
 
-        return SqlKeywords.SELECT + String.join(COMMA, finalSummaryColumns)
+        return SqlKeywords.SELECT + String.join(COMMA, finalAggregateColumns)
             + SqlKeywords.FROM + "(" + sql + ") t0"
             + SqlKeywords.LIMIT + " 1 ";
     }
@@ -378,7 +380,7 @@ public class SqlSelect {
 
     private List<String> allColumns() {
         List<String> finalColumns = new ArrayList<>(columns);
-        finalColumns.addAll(summaryColumns);
+        finalColumns.addAll(aggregateColumns);
 
         return finalColumns;
     }

@@ -55,8 +55,8 @@ List<Account> accounts = jdbcClient.queryForList(sqlSelect, ResultType.forList(A
 SqlSelect sqlSelect = SqlSelect
     .from("accounts", "a") 
     .select("a.id", "a.name") 
-    .addColumn("b.id", "tenant.id") // tenant.id mapping account.tenant.id 
-    .addColumn("b.name", "tenant.name") // tenant.name mapping account.tenant.name 
+    .column("b.id", "tenant.id") // tenant.id mapping account.tenant.id 
+    .column("b.name", "tenant.name") // tenant.name mapping account.tenant.name 
     .leftJoin("tenant b", "a.id", "b.account_id");
 
 Account account = jdbcClient.executeQuery(sqlSelect, ResultType.of(Account.class));
@@ -71,8 +71,8 @@ Account account = jdbcClient.executeQuery(sqlSelect, ResultType.of(Account.class
 SqlSelect sqlSelect = SqlSelect
     .from("accounts", "a") 
     .select("a.id", "a.name") 
-    .addColumn("b.id", "b.id") 
-    .addColumn("b.name", "b.name") 
+    .column("b.id", "b.id") 
+    .column("b.name", "b.name") 
     .leftJoin("tenant b", "a.id", "b.account_id");
 ResultType<Account> resultType = ResultType.of(Account.class).typeAliasMapping("b", "tenant"); // Map alias "b" to "tenant" field
 Account account = jdbcClient.executeQuery(sqlSelect, resultType);
@@ -87,10 +87,10 @@ Account account = jdbcClient.executeQuery(sqlSelect, resultType);
 SqlSelect sqlSelect = SqlSelect
     .from("accounts", "a") 
     .select("a.id", "a.name") 
-    .addColumn("b.id", "tenant.id") 
-    .addColumn("b.name", "tenant.name") 
-    .addColumn("c.id", "tenant.paymentOrder.id") 
-    .addColumn("c.trade_no", "tenant.paymentOrder.tradeNo") 
+    .column("b.id", "tenant.id") 
+    .column("b.name", "tenant.name") 
+    .column("c.id", "tenant.paymentOrder.id") 
+    .column("c.trade_no", "tenant.paymentOrder.tradeNo") 
     .leftJoin("tenant b", "a.id", "b.account_id") 
     .leftJoin("payment_order c", "b.id", "c.tenant_id");
 

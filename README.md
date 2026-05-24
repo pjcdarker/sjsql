@@ -74,8 +74,8 @@ List<Account> accounts = jdbcClient.queryForList(sqlSelect.toSql(), sqlSelect.pa
 SqlSelect sqlSelect = SqlSelect
     .from("accounts", "a") 
     .select("a.id", "a.name") 
-    .addColumn("b.id", "tenant.id") // tenant.id mapping account.tenant.id 
-    .addColumn("b.name", "tenant.name") // tenant.name mapping account.tenant.name 
+    .column("b.id", "tenant.id") // tenant.id mapping account.tenant.id 
+    .column("b.name", "tenant.name") // tenant.name mapping account.tenant.name 
     .leftJoin("tenant b", "a.id", "b.account_id");
 
 Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), Account.class);
@@ -90,8 +90,8 @@ Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), Accoun
 SqlSelect sqlSelect = SqlSelect
     .from("accounts", "a") 
     .select("a.id", "a.name") 
-    .addColumn("b.id", "b.id") 
-    .addColumn("b.name", "b.name") 
+    .column("b.id", "b.id") 
+    .column("b.name", "b.name") 
     .leftJoin("tenant b", "a.id", "b.account_id");
 ResultType<Account> resultType = ResultType.of(Account.class).typeAliasMapping("b", "tenant"); // Map alias "b" to "tenant" field
 Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), resultType);
@@ -106,10 +106,10 @@ Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), result
 SqlSelect sqlSelect = SqlSelect
     .from("accounts", "a") 
     .select("a.id", "a.name") 
-    .addColumn("b.id", "tenant.id") 
-    .addColumn("b.name", "tenant.name") 
-    .addColumn("c.id", "tenant.paymentOrder.id") 
-    .addColumn("c.trade_no", "tenant.paymentOrder.tradeNo") 
+    .column("b.id", "tenant.id") 
+    .column("b.name", "tenant.name") 
+    .column("c.id", "tenant.paymentOrder.id") 
+    .column("c.trade_no", "tenant.paymentOrder.tradeNo") 
     .leftJoin("tenant b", "a.id", "b.account_id") 
     .leftJoin("payment_order c", "b.id", "c.tenant_id");
 
@@ -159,9 +159,9 @@ Account account = new Account();
 boolean isAdmin = account.isAdmin();
 
 SqlSelect sqlSelect = SqlSelect.from("accounts")
-                               .addColumn("id")
-                               .addColumn("name", "account_name", true)
-                               .addColumn("tenant_id", "tenantId", isAdmin);
+                               .column("id")
+                               .column("name", "account_name", true)
+                               .column("tenant_id", "tenantId", isAdmin);
 
 // isAdmin=false output: SELECT id,name AS account_name FROM accounts;
 // isAdmin=true  output: SELECT id,name,tenant_id AS account_name FROM accounts;

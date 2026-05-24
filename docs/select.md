@@ -28,9 +28,9 @@ Account account = new Account();
 boolean isAdmin = account.isAdmin();
 
 SqlSelect sqlSelect = SqlSelect.from("accounts")
-                               .addColumn("id")
-                               .addColumn("name", "account_name", true)
-                               .addColumn("tenant_id", "tenantId", isAdmin);
+                               .column("id")
+                               .column("name", "account_name", true)
+                               .column("tenant_id", "tenantId", isAdmin);
 
 // isAdmin=false output: SELECT id,name AS account_name FROM accounts;
 // isAdmin=true  output: SELECT id,name,tenant_id AS account_name FROM accounts;

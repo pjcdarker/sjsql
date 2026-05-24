@@ -52,10 +52,10 @@ class SqlSelectTest extends DatabaseTest {
     @Test
     void should_add_column() {
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT)
-                                       .addColumn("id")
-                                       .addColumn("name")
-                                       .addColumn("email", true)
-                                       .addColumn("code", false);
+                                       .column("id")
+                                       .column("name")
+                                       .column("email", true)
+                                       .column("code", false);
 
         String expected = SqlKeywords.SELECT + "id,name,email" + SqlKeywords.FROM + T_ACCOUNT;
         assertEquals(expected, sqlSelect.toSql());
@@ -66,9 +66,9 @@ class SqlSelectTest extends DatabaseTest {
     @Test
     void should_add_column_alias() {
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT)
-                                       .addColumn("id")
-                                       .addColumn("name", "account_name", true)
-                                       .addColumn("email", "EE", false);
+                                       .column("id")
+                                       .column("name", "account_name", true)
+                                       .column("email", "EE", false);
 
         assertEquals(SqlKeywords.SELECT + "id,name AS account_name" + SqlKeywords.FROM + T_ACCOUNT,
             sqlSelect.toSql());
@@ -80,9 +80,9 @@ class SqlSelectTest extends DatabaseTest {
     void should_add_summary_column() {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT)
-            .addColumn("code")
-            .addSummaryColumn("COUNT(*)", "total", true)
-            .addSummaryColumn("SUM(distinct name)", "nameCount", false)
+            .column("code")
+            .aggregateColumn("COUNT(*)", "total", true)
+            .aggregateColumn("SUM(distinct name)", "nameCount", false)
             .groupBy("code");
 
         String expected = SqlKeywords.SELECT + "code,COUNT(*) AS total"
@@ -96,8 +96,8 @@ class SqlSelectTest extends DatabaseTest {
     @Test
     void should_output_sql_with_sub_table() {
         SqlSelect subSqlSelect = SqlSelect.from(T_ACCOUNT);
-        subSqlSelect.addColumn("id")
-                    .addColumn("name");
+        subSqlSelect.column("id")
+                    .column("name");
 
         SqlSelect sqlSelect = SqlSelect.from(subSqlSelect, "a");
 
@@ -1280,12 +1280,12 @@ class SqlSelectTest extends DatabaseTest {
     void should_output_summary_sql() {
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT)
                                        .select("name")
-                                       .addSummaryColumn("count(1)", "cnt")
+                                       .aggregateColumn("count(1)", "cnt")
                                        .where("enabled", Op.eq(1))
                                        .groupBy("name")
                                        .limit(0, 10);
 
-        String summarySql = sqlSelect.summarySql();
+        String summarySql = sqlSelect.aggregateSql();
 
         assertEquals(SqlKeywords.SELECT + "count(1) AS cnt"
                 + SqlKeywords.FROM + T_ACCOUNT
@@ -1301,7 +1301,7 @@ class SqlSelectTest extends DatabaseTest {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT)
             .select("name")
-            .addSummaryColumn("count(1)", "cnt")
+            .aggregateColumn("count(1)", "cnt")
             .where("enabled", Op.eq(1))
             .groupBy("name")
             .having
@@ -1309,7 +1309,7 @@ class SqlSelectTest extends DatabaseTest {
             .end()
             .limit(0, 10);
 
-        String summarySql = sqlSelect.summarySql(Arrays.asList(
+        String summarySql = sqlSelect.aggregateSql(Arrays.asList(
             "sum(cnt) cnt"
         ));
 
@@ -1331,14 +1331,14 @@ class SqlSelectTest extends DatabaseTest {
     void should_throw_exception_when_in_aggregated_query_without_group_by() {
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT)
                                        .select("name")
-                                       .addSummaryColumn("count(1)", "cnt")
+                                       .aggregateColumn("count(1)", "cnt")
                                        .where("enabled", Op.eq(1))
                                        // .groupBy("name")
                                        .having("cnt", Op.eq(1))
                                        .limit(0, 10);
 
         final List<String> summaryColumns = List.of("sum(cnt) cnt");
-        assertThrows(IllegalArgumentException.class, () -> sqlSelect.summarySql(summaryColumns));
+        assertThrows(IllegalArgumentException.class, () -> sqlSelect.aggregateSql(summaryColumns));
         assertThrows(SQLException.class, () -> execute_query(sqlSelect.toSql(), sqlSelect.params()));
     }
 

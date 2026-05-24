@@ -37,7 +37,7 @@ class ResultTypeTest extends DatabaseTest {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT, "a")
             .select("a.id", "a.name")
-            .addColumn("a.create_time", "updateTime")
+            .column("a.create_time", "updateTime")
             .where("id", Op.eq(1));
 
         final Account account = jdbcClient.queryForObject(sqlSelect.toSql(), sqlSelect.params(), Account.class);
@@ -53,7 +53,7 @@ class ResultTypeTest extends DatabaseTest {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT, "a")
             .select("a.id", "a.name")
-            .addColumn("a.create_time", "createAt")
+            .column("a.create_time", "createAt")
             .where("id", Op.eq(1));
 
         ResultType<Account> resultType = ResultType.of(Account.class)
@@ -72,7 +72,7 @@ class ResultTypeTest extends DatabaseTest {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT, "a")
             .select("a.id", "a.create_time")
-            .addColumn("a.name", "`a.name`")
+            .column("a.name", "`a.name`")
             .where("id", Op.eq(1));
 
         ResultType<Account> resultType = ResultType.of(Account.class);
@@ -87,8 +87,8 @@ class ResultTypeTest extends DatabaseTest {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT, "a")
             .select("a.id", "a.name", "a.create_time")
-            .addColumn("b.id", "`tenant.id`")
-            .addColumn("b.name", "`tenant.name`")
+            .column("b.id", "`tenant.id`")
+            .column("b.name", "`tenant.name`")
             .leftJoin(T_TENANT, "b", "a.id", "b.account_id")
             .where("a.id", Op.eq(1));
 
@@ -111,8 +111,8 @@ class ResultTypeTest extends DatabaseTest {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT, "a")
             .select("a.id", "a.name", "a.create_time")
-            .addColumn("b.id", "`b.id`")
-            .addColumn("b.name", "`b.name`")
+            .column("b.id", "`b.id`")
+            .column("b.name", "`b.name`")
             .leftJoin(T_TENANT, "b", "a.id", "b.account_id")
             .where("a.id", Op.eq(1));
 
@@ -173,10 +173,10 @@ class ResultTypeTest extends DatabaseTest {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT, "a")
             .select("a.id", "a.name", "a.email")
-            .addColumn("b.id", "`tenant.id`")
-            .addColumn("b.name", "`tenant.name`")
-            .addColumn("c.id", "`tenant.paymentOrder.id`")
-            .addColumn("c.trade_no", "`tenant.paymentOrder.tradeNo`")
+            .column("b.id", "`tenant.id`")
+            .column("b.name", "`tenant.name`")
+            .column("c.id", "`tenant.paymentOrder.id`")
+            .column("c.trade_no", "`tenant.paymentOrder.tradeNo`")
             .leftJoin(T_TENANT, "b", "a.id", "b.account_id")
             .leftJoin(T_PAYMENT_ORDER, "c", "b.id", "c.tenant_id")
             .where("a.id", SqlKeywords.Op.eq(1));
@@ -207,12 +207,12 @@ class ResultTypeTest extends DatabaseTest {
         SqlSelect sqlSelect = SqlSelect
             .from(T_ACCOUNT, "a")
             .select("a.id", "a.name", "a.email")
-            .addColumn("b.id", "`tenant.id`")
-            .addColumn("b.name", "`tenant.name`")
-            .addColumn("c.id", "`paymentOrder.id`")
-            .addColumn("c.trade_no", "`paymentOrder.tradeNo`")
-            .addColumn("d.id", "`tenant.paymentOrder.id`")
-            .addColumn("d.trade_no", "`tenant.paymentOrder.tradeNo`")
+            .column("b.id", "`tenant.id`")
+            .column("b.name", "`tenant.name`")
+            .column("c.id", "`paymentOrder.id`")
+            .column("c.trade_no", "`paymentOrder.tradeNo`")
+            .column("d.id", "`tenant.paymentOrder.id`")
+            .column("d.trade_no", "`tenant.paymentOrder.tradeNo`")
             .leftJoin(T_TENANT, "b", "a.id", "b.account_id")
             .leftJoin(T_PAYMENT_ORDER, "c", "a.id", "c.account_id AND c.tenant_id IS NULL")
             .leftJoin(T_PAYMENT_ORDER, "d", "b.id", "d.tenant_id")
