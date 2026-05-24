@@ -3,6 +3,7 @@ package io.github.reader.sjsql;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public enum SqlKeywords {
@@ -62,27 +63,43 @@ public enum SqlKeywords {
         private static final String NOT_IN = "NOT IN";
         private static final String BETWEEN = "BETWEEN";
         private static final String LIKE = "LIKE";
+        private static final String EXISTS = "EXISTS";
+        private static final String NOT_EXISTS = "NOT EXISTS";
 
-        private static final Map<String, Function<Op, String>> formatFunc = Map.of(
-            LIKE, op -> "LIKE ?",
-            BETWEEN, op -> "BETWEEN ? AND ?",
-            IS_NULL, op -> IS_NULL,
-            IS_NOT_NULL, op -> IS_NOT_NULL,
-            IN, op -> {
+        private static final Map<String, Function<Op, String>> formatFunc = Map.ofEntries(
+            Map.entry(LIKE, op -> LIKE + " ?"),
+            Map.entry(BETWEEN, op -> BETWEEN + " ? AND ?"),
+            Map.entry(IS_NULL, op -> IS_NULL),
+            Map.entry(IS_NOT_NULL, op -> IS_NOT_NULL),
+            Map.entry(IN, op -> {
                 if (op.sqlSelect != null) {
-                    return "IN (" + op.sqlSelect.toSql() + ")";
+                    return IN + " (" + op.sqlSelect.toSql() + ")";
                 }
                 String logicalType = op.reverse ? NOT_IN : IN;
                 return parametrizeList(op, logicalType);
-            },
-            NOT_IN, op -> {
+            }),
+            Map.entry(NOT_IN, op -> {
                 if (op.sqlSelect != null) {
-                    return "NOT IN (" + op.sqlSelect.toSql() + ")";
+                    return NOT_IN + " (" + op.sqlSelect.toSql() + ")";
                 }
                 String logicalType = op.reverse ? IN : NOT_IN;
                 return parametrizeList(op, logicalType);
-            }
+            }),
+            Map.entry(EXISTS, op -> {
+                if (op.sqlSelect != null) {
+                    return EXISTS + " (" + op.sqlSelect.toSql() + ")";
+                }
+                return EXISTS + " (?)";
+            }),
+            Map.entry(NOT_EXISTS, op -> {
+                if (op.sqlSelect != null) {
+                    return NOT_EXISTS + " (" + op.sqlSelect.toSql() + ")";
+                }
+                return NOT_EXISTS + " (?)";
+            })
         );
+
+        private static final Set<String> NO_COLUMN_PREFIX_SIGNS = Set.of(EXISTS, NOT_EXISTS);
 
         private final String sign;
         private final Object param;
@@ -177,6 +194,15 @@ public enum SqlKeywords {
         public static <E> Op between(E start, E end) {
             return new Op(BETWEEN, List.of(start, end));
         }
+
+        public static Op exists(SqlSelect sqlSelect) {
+            return create(EXISTS, sqlSelect);
+        }
+
+        public static Op notExists(SqlSelect sqlSelect) {
+            return create(NOT_EXISTS, sqlSelect);
+        }
+
         public static Op create(String op, Object param) {
             return new Op(op, param);
         }
@@ -193,6 +219,9 @@ public enum SqlKeywords {
         public String format(String column) {
             final Function<Op, String> function = formatFunc.get(this.sign);
             if (function != null) {
+                if (NO_COLUMN_PREFIX_SIGNS.contains(this.sign)) {
+                    return function.apply(this);
+                }
                 return column + " " + function.apply(this);
             }
 

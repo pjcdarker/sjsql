@@ -3,10 +3,8 @@ package io.github.reader.sjsql;
 import io.github.reader.sjsql.SqlKeywords.Op;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 public class SqlCondition<T> {
 
@@ -99,17 +97,15 @@ public class SqlCondition<T> {
     }
 
 
-    public SqlCondition<T> exists(SqlSelect sqlSelect) {
-        Objects.requireNonNull(sqlSelect, "sqlSelect cannot be null");
-        addCond("", SqlKeywords.EXISTS + String.format(subFormat, sqlSelect.toSql()));
-        this.params.addAll(Arrays.asList(sqlSelect.params()));
+    public SqlCondition<T> and(Op op) {
+        addCond(SqlKeywords.AND.toString(), op.format(""));
+        addParam(op);
         return this;
     }
 
-    public SqlCondition<T> not_exists(SqlSelect sqlSelect) {
-        Objects.requireNonNull(sqlSelect, "sqlSelect cannot be null");
-        addCond("", SqlKeywords.NOT_EXISTS + String.format(subFormat, sqlSelect.toSql()));
-        this.params.addAll(Arrays.asList(sqlSelect.params()));
+    public SqlCondition<T> or(Op op) {
+        addCond(SqlKeywords.OR.toString(), op.format(""));
+        addParam(op);
         return this;
     }
 
