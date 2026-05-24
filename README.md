@@ -123,18 +123,18 @@ Account account = jdbcClient.queryForObject(sqlSelect.toSql(), sqlSelect.params(
 
 ```
 
-## ignore Unknown fields
+## disable ignore Unknown fields
 
 ```java
 
 SqlSelect sqlSelect = SqlSelect
     .from("accounts") 
-    .select("id", "name", "code AS unknown_field");
+    .select("id", "name", "code AS unknown_field").disableIgnoreUnknownField();
 
-ResultType<Account> resultType = ResultType.of(Account.class); // Ignore unknown fields (default)
+ResultType<Account> resultType = ResultType.of(Account.class);
 Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), resultType);
 
-// unknown_field will not map to account
+// throw NoSuchFieldException.
 
 ```
 
@@ -160,11 +160,11 @@ boolean isAdmin = account.isAdmin();
 
 SqlSelect sqlSelect = SqlSelect.from("accounts")
                                .column("id")
-                               .column("name", "account_name", true)
+                               .column("name", "account_name")
                                .column("tenant_id", "tenantId", isAdmin);
 
 // isAdmin=false output: SELECT id,name AS account_name FROM accounts;
-// isAdmin=true  output: SELECT id,name,tenant_id AS account_name FROM accounts;
+// isAdmin=true  output: SELECT id,name AS account_name, tenant_id AS tenantId FROM accounts;
 
 ```
 
