@@ -65,6 +65,7 @@ public enum SqlKeywords {
         private static final String LIKE = "LIKE";
         private static final String EXISTS = "EXISTS";
         private static final String NOT_EXISTS = "NOT EXISTS";
+        private static final String VAL = "__VAL__";
 
         private static final Map<String, Function<Op, String>> formatFunc = Map.ofEntries(
             Map.entry(LIKE, op -> LIKE + " ?"),
@@ -203,6 +204,10 @@ public enum SqlKeywords {
             return create(NOT_EXISTS, sqlSelect);
         }
 
+        public static Op val(Object... params) {
+            return new Op(VAL, params.length > 0 ? List.of(params) : null);
+        }
+
         public static Op create(String op, Object param) {
             return new Op(op, param);
         }
@@ -217,6 +222,9 @@ public enum SqlKeywords {
         }
 
         public String format(String column) {
+            if (VAL.equals(this.sign)) {
+                return column;
+            }
             final Function<Op, String> function = formatFunc.get(this.sign);
             if (function != null) {
                 if (NO_COLUMN_PREFIX_SIGNS.contains(this.sign)) {

@@ -299,6 +299,17 @@ class SqlConditionTest {
     }
 
     @Test
+    void should_use_val_op_for_raw_sql_condition() {
+        SqlCondition<SqlSelect> condition = SqlCondition.create();
+        condition.and("MATCH(title) AGAINST(? IN BOOLEAN MODE)", Op.val("keyword"))
+                .or("JSON_EXTRACT(data, '$.status') = ?", Op.val("active"));
+
+        assertEquals("MATCH(title) AGAINST(? IN BOOLEAN MODE) OR (JSON_EXTRACT(data, '$.status') = ?)",
+            condition.toSql());
+        assertArrayEquals(new Object[]{"keyword", "active"}, condition.params().toArray());
+    }
+
+    @Test
     void should_add_condition_with_append_or_not() {
         SqlCondition<SqlSelect> condition = SqlCondition.create();
         condition.and("name", Op.eq("John"), true)

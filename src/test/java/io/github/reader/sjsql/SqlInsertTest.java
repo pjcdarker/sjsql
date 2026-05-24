@@ -18,6 +18,15 @@ import java.util.Map;
 class SqlInsertTest extends DatabaseTest {
 
     @Test
+    void should_generate_insert_sql_with_append_sql() {
+        SqlInsert insert = SqlInsert.into("account")
+                                    .values("name", "Test")
+                                    .appendExtSql("ON DUPLICATE KEY UPDATE name = VALUES(name)");
+        assertEquals("INSERT INTO account (name) VALUES (?) ON DUPLICATE KEY UPDATE name = VALUES(name);",
+            insert.toSql());
+    }
+
+    @Test
     void should_generate_simple_insert_sql() {
         SqlInsert insert = SqlInsert.into("account")
                                     .values("id", 999)

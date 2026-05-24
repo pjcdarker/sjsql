@@ -224,3 +224,16 @@ SqlSelect sqlSelect = SqlSelect
 // WHERE a.emp_count > ?;
 
 ```
+
+## appendExtSql
+
+```java
+
+SqlSelect sqlSelect = SqlSelect
+    .from("accounts") 
+    .where("id", Op.eq(1))
+    .appendExtSql("FOR UPDATE");
+
+// SELECT * FROM accounts WHERE id = ? FOR UPDATE;
+
+```

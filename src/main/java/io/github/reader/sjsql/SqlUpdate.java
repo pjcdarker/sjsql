@@ -18,6 +18,7 @@ public class SqlUpdate {
     private boolean noWhereClause = false;
     private boolean refValueReplaced = false;
     private List<?> dataset;
+    private String extSql = "";
 
     public final SqlCondition<SqlUpdate> where;
 
@@ -100,6 +101,9 @@ public class SqlUpdate {
                .append(whereSql);
         }
 
+        if (!this.extSql.isEmpty()) {
+            sql.append(" ").append(this.extSql);
+        }
         sql.append(";");
         return sql.toString();
     }
@@ -132,6 +136,11 @@ public class SqlUpdate {
 
     public SqlUpdate noWhereClause() {
         this.noWhereClause = true;
+        return this;
+    }
+
+    public SqlUpdate appendExtSql(String sql) {
+        this.extSql = sql;
         return this;
     }
 

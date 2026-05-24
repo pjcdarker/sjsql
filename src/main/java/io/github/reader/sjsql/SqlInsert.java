@@ -21,6 +21,7 @@ public class SqlInsert {
     private final Map<String, List<Object>> columnValues;
     private boolean columnValuesUpdated = false;
     private List<?> dataset;
+    private String extSql = "";
 
     private SqlInsert(String table) {
         this.table = table;
@@ -59,6 +60,11 @@ public class SqlInsert {
         return this;
     }
 
+    public SqlInsert appendExtSql(String sql) {
+        this.extSql = sql;
+        return this;
+    }
+
     public String toSql() {
         updateColumnValues();
         List<String> columns = List.copyOf(columnValues.keySet());
@@ -77,9 +83,12 @@ public class SqlInsert {
         String placeholderString = String.join(",", placeholders);
         sql.append("(")
            .append(placeholderString)
-           .append(")")
-           .append(";")
-        ;
+           .append(")");
+
+        if (!this.extSql.isEmpty()) {
+            sql.append(" ").append(this.extSql);
+        }
+        sql.append(";");
 
         return sql.toString();
     }
@@ -167,7 +176,6 @@ public class SqlInsert {
 
     private boolean meetSizeFromValuesSet(String columnName) {
         List<Object> objects = this.columnValues.get(columnName);
-        // from values set
         return objects != null && objects.size() == this.dataset.size();
     }
 

@@ -19,6 +19,14 @@ import java.util.Map;
 class SqlDeleteTest extends DatabaseTest {
 
     @Test
+    void should_generate_delete_sql_with_append_sql() {
+        SqlDelete sqlDelete = SqlDelete.from("account")
+                                       .where("id", Op.eq(1))
+                                       .appendExtSql("ORDER BY id LIMIT 1");
+        assertEquals("DELETE  FROM account WHERE id=? ORDER BY id LIMIT 1;", sqlDelete.toSql());
+    }
+
+    @Test
     void should_execute_delete_sql() {
         final String email = "testDel@test.com";
         SqlInsert insert = SqlInsert.into(T_ACCOUNT)

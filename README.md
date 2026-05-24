@@ -185,6 +185,19 @@ SqlSelect sqlSelect = SqlSelect
 
 ```
 
+## raw sql condition
+
+```java
+
+SqlSelect sqlSelect = SqlSelect
+    .from("accounts") 
+    .where("status", Op.eq("active"))
+    .and("MATCH(title) AGAINST(? IN BOOLEAN MODE)", Op.val("keyword"));
+
+// SELECT * FROM accounts WHERE status = ? AND MATCH(title) AGAINST(? IN BOOLEAN MODE);
+
+```
+
 ## dynamic where
 
 ```java
@@ -417,6 +430,61 @@ SqlDelete sqlDelete = SqlDelete.from("accounts")
 SqlDelete sqlDelete = SqlDelete.batch("accounts", List.of(account1, account2))
                                .where("id", Op.eq(RefValue.ref("id"))); // $.id = account.id
 
+
+```
+
+## [select examples](./docs/select.md)
+
+## appendExtSql
+
+Append database-specific SQL syntax at the end of the generated SQL statement.
+
+### SELECT with FOR UPDATE
+
+```java
+
+SqlSelect sqlSelect = SqlSelect
+    .from("accounts") 
+    .where("id", Op.eq(1))
+    .appendExtSql("FOR UPDATE");
+
+// SELECT * FROM accounts WHERE id = ? FOR UPDATE;
+
+```
+
+### INSERT with ON DUPLICATE KEY UPDATE
+
+```java
+
+SqlInsert sqlInsert = SqlInsert.into("accounts")
+                               .values("name", "Tom")
+                               .appendExtSql("ON DUPLICATE KEY UPDATE name = VALUES(name)");
+// INSERT INTO accounts (name) VALUES (?) ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+```
+
+### UPDATE with RETURNING
+
+```java
+
+SqlUpdate sqlUpdate = SqlUpdate.table("accounts")
+    .set("name", "Tom")
+    .where("id", Op.eq(1))
+    .appendExtSql("RETURNING id");
+
+// UPDATE accounts SET name = ? WHERE id = ? RETURNING id;
+
+```
+
+### DELETE with ORDER BY and LIMIT
+
+```java
+
+SqlDelete sqlDelete = SqlDelete.from("accounts")
+                               .where("id", Op.eq(1))
+                               .appendExtSql("ORDER BY id LIMIT 1");
+
+// DELETE FROM accounts WHERE id = ? ORDER BY id LIMIT 1;
 
 ```
 

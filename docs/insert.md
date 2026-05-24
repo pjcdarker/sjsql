@@ -72,3 +72,14 @@ SqlInsert sqlInsert = SqlInsert.batch("accounts", accounts)
 // INSERT INTO accounts (name,email,code,create_time) VALUES (?,?,?,?);
 
 ```
+
+## appendExtSql
+
+```java
+
+SqlInsert sqlInsert = SqlInsert.into("accounts")
+                               .values("name", "Tom")
+                               .appendExtSql("ON DUPLICATE KEY UPDATE name = VALUES(name)");
+// INSERT INTO accounts (name) VALUES (?) ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+```

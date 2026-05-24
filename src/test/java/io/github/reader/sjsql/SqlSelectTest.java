@@ -18,6 +18,15 @@ import java.util.List;
 class SqlSelectTest extends DatabaseTest {
 
     @Test
+    void should_generate_select_sql_with_append_sql() {
+        SqlSelect sqlSelect = SqlSelect.from("account")
+                                       .column("id")
+                                       .where("id", Op.eq(1))
+                                       .appendExtSql("FOR UPDATE");
+        assertEquals("SELECT id FROM account WHERE id=? FOR UPDATE", sqlSelect.toSql());
+    }
+
+    @Test
     void should_output_normal_sql() {
         SqlSelect sqlSelect = SqlSelect.from(T_ACCOUNT);
 

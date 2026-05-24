@@ -11,6 +11,7 @@ public class SqlDelete {
     private final String table;
     private boolean noWhereClause = false;
     private List<?> dataset;
+    private String extSql = "";
 
     public final SqlCondition<SqlDelete> where;
 
@@ -45,6 +46,11 @@ public class SqlDelete {
         return this;
     }
 
+    public SqlDelete appendExtSql(String sql) {
+        this.extSql = sql;
+        return this;
+    }
+
     public String toSql() {
         if (this.where.isBlank() && !this.noWhereClause) {
             throw new IllegalStateException("[WARN] The delete statement is without where clause");
@@ -59,6 +65,9 @@ public class SqlDelete {
                .append(where.toSql());
         }
 
+        if (!this.extSql.isEmpty()) {
+            sql.append(" ").append(this.extSql);
+        }
         sql.append(";");
         return sql.toString();
     }

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.github.reader.sjsql.SqlKeywords.Op;
 import io.github.reader.sjsql.model.Account;
 import org.junit.jupiter.api.Test;
 
@@ -18,6 +19,15 @@ import java.util.List;
 import java.util.Map;
 
 class SqlUpdateTest extends DatabaseTest {
+
+    @Test
+    void should_generate_update_sql_with_append_sql() {
+        SqlUpdate update = SqlUpdate.table("account")
+                                    .set("name", "Test")
+                                    .where("id", Op.eq(1))
+                                    .appendExtSql("RETURNING id, name");
+        assertEquals("UPDATE account SET name=? WHERE id=? RETURNING id, name;", update.toSql());
+    }
 
     @Test
     void should_generate_simple_update_sql() throws Throwable {

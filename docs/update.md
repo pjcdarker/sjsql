@@ -87,3 +87,16 @@ SqlUpdate sqlUpdate = SqlUpdate.batch("accounts", maps)
 
 
 ```
+
+## appendExtSql
+
+```java
+
+SqlUpdate sqlUpdate = SqlUpdate.table("accounts")
+    .set("name", "Tom")
+    .where("id", Op.eq(1))
+    .appendExtSql("RETURNING id");
+
+// UPDATE accounts SET name = ? WHERE id = ? RETURNING id;
+
+```

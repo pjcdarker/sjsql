@@ -49,3 +49,15 @@ SqlDelete sqlDelete = SqlDelete.batch("accounts", List.of(map1, map2))
                                .where("id", Op.eq(RefValue.ref("id"))); // $.id = map.get("id")
 
 ```
+
+## appendExtSql
+
+```java
+
+SqlDelete sqlDelete = SqlDelete.from("accounts")
+                               .where("id", Op.eq(1))
+                               .appendExtSql("ORDER BY id LIMIT 1");
+
+// DELETE FROM accounts WHERE id = ? ORDER BY id LIMIT 1;
+
+```

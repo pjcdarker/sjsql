@@ -20,6 +20,7 @@ public class SqlSelect {
     private StringBuilder groupByBuilder;
     private StringBuilder orderByBuilder;
     private String limit = "";
+    private String extSql = "";
 
     public final SqlCondition<SqlSelect> where;
     public final SqlCondition<SqlSelect> having;
@@ -274,13 +275,16 @@ public class SqlSelect {
         StringBuilder result = new StringBuilder(300 + columnsSql.length());
         result.append(selectFromTableSql(this.table, columnsSql));
         if (this.unionTables.isEmpty()) {
-            return result.append(this.joinBuilder)
-                         .append(whereSql())
-                         .append(groupBySql())
-                         .append(havingSql())
-                         .append(orderBySql())
-                         .append(limitSql())
-                         .toString();
+            result.append(this.joinBuilder)
+                  .append(whereSql())
+                  .append(groupBySql())
+                  .append(havingSql())
+                  .append(orderBySql())
+                  .append(limitSql());
+            if (!this.extSql.isEmpty()) {
+                result.append(" ").append(this.extSql);
+            }
+            return result.toString();
         }
 
         this.unionTables
@@ -422,6 +426,11 @@ public class SqlSelect {
             return "";
         }
         return SqlKeywords.LIMIT + this.limit;
+    }
+
+    public SqlSelect appendExtSql(String sql) {
+        this.extSql = sql;
+        return this;
     }
 
     private static String wrapSubSql(String sql) {
