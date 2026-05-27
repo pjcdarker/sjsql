@@ -1,5 +1,8 @@
 package io.github.reader.sjsql.jdbc;
 
+import io.github.reader.sjsql.SqlCommand;
+import io.github.reader.sjsql.SqlInsert;
+import io.github.reader.sjsql.SqlSelect;
 import io.github.reader.sjsql.result.ResultType;
 import javax.sql.DataSource;
 
@@ -44,12 +47,24 @@ public class SimpleJdbcClient {
         return this.query(sql, params, ResultType.of(tClass));
     }
 
+    public <T> T queryForObject(SqlSelect sqlSelect, Class<T> tClass) {
+        return this.queryForObject(sqlSelect.toSql(), sqlSelect.params(), tClass);
+    }
+
     public <T> List<T> queryForList(String sql, Object[] params, Class<T> elementType) {
         return this.query(sql, params, ResultType.forList(elementType));
     }
 
+    public <T> List<T> queryForList(SqlSelect sqlSelect, Class<T> elementType) {
+        return this.queryForList(sqlSelect.toSql(), sqlSelect.params(), elementType);
+    }
+
     public List<Map<String, Object>> query(String sql, Object[] params) {
         return this.query(sql, params, ResultType.forMapList());
+    }
+
+    public List<Map<String, Object>> query(SqlSelect sqlSelect) {
+        return this.query(sqlSelect.toSql(), sqlSelect.params());
     }
 
     public <T> T query(String sql, Object[] params, ResultType<T> resultType) {
@@ -66,6 +81,10 @@ public class SimpleJdbcClient {
         });
     }
 
+    public <T> T query(SqlSelect sqlSelect, ResultType<T> resultType) {
+        return this.query(sqlSelect.toSql(), sqlSelect.params(), resultType);
+    }
+
     /**
      * INSERT、UPDATE、DELETE.
      */
@@ -76,8 +95,16 @@ public class SimpleJdbcClient {
         });
     }
 
+    public int update(SqlCommand sqlCommand) {
+        return this.update(sqlCommand.toSql(), sqlCommand.params());
+    }
+
     public GeneratedKey insert(String sql, Object[] params) {
         return this.insert(sql, params, null);
+    }
+
+    public GeneratedKey insert(SqlInsert sqlInsert) {
+        return this.insert(sqlInsert.toSql(), sqlInsert.params());
     }
 
     public GeneratedKey insert(String sql, Object[] params, List<String> keyColumnNames) {
@@ -105,6 +132,10 @@ public class SimpleJdbcClient {
 
             return keyHolder;
         });
+    }
+
+    public GeneratedKey insert(SqlInsert sqlInsert, List<String> keyColumnNames) {
+        return this.insert(sqlInsert.toSql(), sqlInsert.params(), keyColumnNames);
     }
 
     public int[] batchUpdate(String sql, Object[][] batchParams) {
@@ -140,6 +171,14 @@ public class SimpleJdbcClient {
             }
             return results;
         });
+    }
+
+    public int[] batchUpdate(SqlCommand sqlCommand) {
+        return this.batchUpdate(sqlCommand.toSql(), sqlCommand.batchParams());
+    }
+
+    public int[] batchUpdate(SqlCommand sqlCommand, int batchSize) {
+        return this.batchUpdate(sqlCommand.toSql(), sqlCommand.batchParams(), batchSize);
     }
 
     public int[] executeBatch(String... sqls) {

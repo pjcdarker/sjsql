@@ -15,7 +15,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 
-public class SqlInsert {
+public class SqlInsert implements SqlCommand {
 
     private final String table;
     private final Map<String, List<Object>> columnValues;
@@ -65,6 +65,7 @@ public class SqlInsert {
         return this;
     }
 
+    @Override
     public String toSql() {
         updateColumnValues();
         List<String> columns = List.copyOf(columnValues.keySet());
@@ -93,10 +94,12 @@ public class SqlInsert {
         return sql.toString();
     }
 
+    @Override
     public Object[] params() {
         return batchParams()[0];
     }
 
+    @Override
     public Object[][] batchParams() {
         updateColumnValues();
         int valueSize = this.dataset == null ? 1 : this.dataset.size();

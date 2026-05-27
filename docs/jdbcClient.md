@@ -7,6 +7,10 @@
 
 Account account = jdbcClient.queryForObject(sql, params, Account.class);
 
+// OR
+
+Account account = jdbcClient.queryForObject(sqlSelect, Account.class);
+
 ```
 
 ## query List
@@ -15,6 +19,10 @@ Account account = jdbcClient.queryForObject(sql, params, Account.class);
 
 
 List<Account> accounts = jdbcClient.queryForList(sql, params, Account.class);
+
+// OR
+
+List<Account> accounts = jdbcClient.queryForList(sqlSelect, Account.class);
 
 ```
 
@@ -25,7 +33,16 @@ List<Account> accounts = jdbcClient.queryForList(sql, params, Account.class);
 GeneratedKey generatedKey = jdbcClient.insert(sql, params);
 
 // OR
+
+GeneratedKey generatedKey = jdbcClient.insert(sqlInsert);
+
+// OR
+
 GeneratedKey generatedKey = jdbcClient.insert(sql, params, List.of("id"));
+
+// OR
+
+GeneratedKey generatedKey = jdbcClient.insert(sqlInsert, List.of("id"));
 
 // keyHolder.getKey().longValue()
 // keyHolder.getKey(Long.class)
@@ -38,6 +55,10 @@ GeneratedKey generatedKey = jdbcClient.insert(sql, params, List.of("id"));
 
 int affectedRows = jdbcClient.update(sql, params);
 
+// OR
+
+int affectedRows = jdbcClient.update(sqlCommand);
+
 ```
 
 
@@ -46,6 +67,14 @@ int affectedRows = jdbcClient.update(sql, params);
 ```java
 
 jdbcClient.batchUpdate(sql, params, batchSize);
+
+// OR
+
+jdbcClient.batchUpdate(sqlCommand);
+
+// OR
+
+jdbcClient.batchUpdate(sqlCommand, batchSize);
 
 ```
 

@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class SqlUpdate {
+public class SqlUpdate implements SqlCommand {
 
     private final String table;
     private final Map<String, List<Object>> columnValues;
@@ -77,6 +77,7 @@ public class SqlUpdate {
         return this;
     }
 
+    @Override
     public String toSql() {
         if (this.where.isBlank() && !this.noWhereClause) {
             throw new IllegalStateException("[WARN] The update statement is without where clause");
@@ -108,10 +109,12 @@ public class SqlUpdate {
         return sql.toString();
     }
 
+    @Override
     public Object[] params() {
         return batchParams()[0];
     }
 
+    @Override
     public Object[][] batchParams() {
         updateColumnValues();
         List<List<Object>> whereParams = whereParams();

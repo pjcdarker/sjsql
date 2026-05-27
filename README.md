@@ -67,58 +67,69 @@ List<Account> accounts = jdbcClient.queryForList(sqlSelect.toSql(), sqlSelect.pa
 
 ```
 
-## Object Field Mapping
+## Nested Object Mapping
+
+Map result columns to nested object fields.
+
+### Field Path Mapping
+
+Map a column alias directly to an object field path:
 
 ```java
 
 SqlSelect sqlSelect = SqlSelect
-    .from("accounts", "a") 
-    .select("a.id", "a.name") 
-    .column("b.id", "tenant.id") // tenant.id mapping account.tenant.id 
-    .column("b.name", "tenant.name") // tenant.name mapping account.tenant.name 
+    .from("accounts", "a")
+    .select("a.id", "a.name")
+    .column("b.id", "tenant.id")      // b.id -> account.tenant.id
+    .column("b.name", "tenant.name")  // b.name -> account.tenant.name
     .leftJoin("tenant b", "a.id", "b.account_id");
 
 Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), Account.class);
-// Result: account.getTenant().getId() and account.getTenant().getName() will be correctly set
+// account.getTenant().getId() and account.getTenant().getName() are set
 
 ```
 
-## Configuring Alias to Object Field Mapping
+### Alias Prefix Mapping
+
+Map all columns with the same alias prefix to a nested object field:
 
 ```java
 
 SqlSelect sqlSelect = SqlSelect
-    .from("accounts", "a") 
-    .select("a.id", "a.name") 
-    .column("b.id", "b.id") 
-    .column("b.name", "b.name") 
+    .from("accounts", "a")
+    .select("a.id", "a.name")
+    .column("b.id", "b.id")
+    .column("b.name", "b.name")
     .leftJoin("tenant b", "a.id", "b.account_id");
-ResultType<Account> resultType = ResultType.of(Account.class).typeAliasMapping("b", "tenant"); // Map alias "b" to "tenant" field
+
+ResultType<Account> resultType = ResultType.of(Account.class)
+    .typeAliasMapping("b", "tenant");  // All "b.xxx" -> account.tenant.xxx
+
 Account account = jdbcClient.query(sqlSelect.toSql(), sqlSelect.params(), resultType);
 
-
 ```
 
-## Multi-level Object Field Mapping
+### Multi-level Nesting
+
+Support arbitrary depth of nested objects:
 
 ```java
 
 SqlSelect sqlSelect = SqlSelect
-    .from("accounts", "a") 
-    .select("a.id", "a.name") 
-    .column("b.id", "tenant.id") 
-    .column("b.name", "tenant.name") 
-    .column("c.id", "tenant.paymentOrder.id") 
-    .column("c.trade_no", "tenant.paymentOrder.tradeNo") 
-    .leftJoin("tenant b", "a.id", "b.account_id") 
+    .from("accounts", "a")
+    .select("a.id", "a.name")
+    .column("b.id", "tenant.id")
+    .column("b.name", "tenant.name")
+    .column("c.id", "tenant.paymentOrder.id")
+    .column("c.trade_no", "tenant.paymentOrder.tradeNo")
+    .leftJoin("tenant b", "a.id", "b.account_id")
     .leftJoin("payment_order c", "b.id", "c.tenant_id");
 
 Account account = jdbcClient.queryForObject(sqlSelect.toSql(), sqlSelect.params(), Account.class);
 
-// Results: 
-// account.getTenant().getId() 
-// account.getTenant().getName() 
-// account.getTenant().getPaymentOrder().getId() 
+// account.getTenant().getId()
+// account.getTenant().getName()
+// account.getTenant().getPaymentOrder().getId()
 // account.getTenant().getPaymentOrder().getTradeNo()
 
 ```

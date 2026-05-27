@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SqlDelete {
+public class SqlDelete implements SqlCommand {
 
     private final String table;
     private boolean noWhereClause = false;
@@ -51,6 +51,7 @@ public class SqlDelete {
         return this;
     }
 
+    @Override
     public String toSql() {
         if (this.where.isBlank() && !this.noWhereClause) {
             throw new IllegalStateException("[WARN] The delete statement is without where clause");
@@ -71,10 +72,12 @@ public class SqlDelete {
         return sql.toString();
     }
 
+    @Override
     public Object[] params() {
         return batchParams()[0];
     }
 
+    @Override
     public Object[][] batchParams() {
         if (this.dataset == null) {
             Object[] array = this.where.params().toArray();
