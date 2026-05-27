@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.pjcdarker"
-version = "1.1.2"
+version = "1.1.3"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public/")
@@ -39,7 +39,8 @@ listOf("h2", "mysql").forEach {
         group = "database"
         useJUnitPlatform()
         systemProperty("test.db.type", it)
-        include("**/*Test.class")
+        testClassesDirs = project.the<SourceSetContainer>()["test"].output.classesDirs
+        classpath = project.the<SourceSetContainer>()["test"].runtimeClasspath
     }
 }
 
